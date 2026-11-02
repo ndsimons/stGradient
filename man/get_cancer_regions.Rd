@@ -12,7 +12,8 @@ get_cancer_regions(seurat_obj, fov_name = "fov")
 \item{fov_name}{Name of the field of view (default: "fov")}
 }
 \value{
-sf object of cancer region polygons, or `NULL` if none are stored
+sf object of cancer region polygons, or `NULL` with a warning if none
+  are stored for `fov_name`
 }
 \description{
 Retrieves the polygons stored by [add_dbscan_polygons()] for a field of view.

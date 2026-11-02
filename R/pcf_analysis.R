@@ -27,6 +27,7 @@ build_outside_ppp <- function(seurat_obj,
   }
 
   coords_df <- get_cell_coords(seurat_obj, fov_name)
+  check_polygons(polygons)
   coords_df$cellType <- as.character(seurat_obj@meta.data[coords_df$cell_id, celltype_col])
 
   coords_sf <- sf::st_as_sf(coords_df, coords = c("x", "y"))

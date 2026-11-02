@@ -9,6 +9,7 @@
 #'   `colnames(seurat_obj)` order; `NA` for cells without coordinates in the FOV.
 #' @export
 calculate_boundary_distances <- function(seurat_obj, polygons, fov_name = "fov") {
+  check_polygons(polygons)
   coords <- get_cell_coords(seurat_obj, fov_name)
   coords_sf <- sf::st_as_sf(coords, coords = c("x", "y"))
   

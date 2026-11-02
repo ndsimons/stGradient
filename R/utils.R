@@ -46,6 +46,23 @@ expand_to_all_cells <- function(values, cell_ids, seurat_obj, what = "values") {
   out
 }
 
+# Validate a user-supplied polygon object before spatial operations.
+check_polygons <- function(polygons) {
+  if (is.null(polygons)) {
+    stop("`polygons` is NULL. If they came from add_dbscan_polygons(), retrieve them ",
+         "with get_cancer_regions(seurat_obj, fov_name); polygons are no longer stored ",
+         "in the FOV boundaries slot.", call. = FALSE)
+  }
+  if (!inherits(polygons, c("sf", "sfc"))) {
+    stop("`polygons` must be an sf or sfc object, not ",
+         paste(class(polygons), collapse = "/"), ".", call. = FALSE)
+  }
+  if (length(sf::st_geometry(polygons)) == 0) {
+    stop("`polygons` contains no geometries.", call. = FALSE)
+  }
+  invisible(polygons)
+}
+
 #' Parse SVG Path to Coordinates
 #'
 #' Internal function to parse plotly SVG paths
@@ -91,6 +108,7 @@ parse_svg_path <- function(path_string) {
 #' @return Seurat object with added metadata
 #' @export
 add_polygon_membership <- function(seurat_obj, polygons, fov_name = "fov") {
+  check_polygons(polygons)
   coords <- get_cell_coords(seurat_obj, fov_name)
   coords_sf <- sf::st_as_sf(coords, coords = c("x", "y"))
   
@@ -222,7 +240,8 @@ add_dbscan_polygons <- function(seurat_obj,
 #'
 #' @param seurat_obj Seurat object processed with [add_dbscan_polygons()]
 #' @param fov_name Name of the field of view (default: "fov")
-#' @return sf object of cancer region polygons, or `NULL` if none are stored
+#' @return sf object of cancer region polygons, or `NULL` with a warning if none
+#'   are stored for `fov_name`
 #' @export
 #'
 #' @examples
@@ -238,6 +257,13 @@ get_cancer_regions <- function(seurat_obj, fov_name = "fov") {
       error = function(e) NULL
     )
     if (inherits(legacy, "sf")) polygons <- legacy
+  }
+  if (is.null(polygons)) {
+    stored <- names(seurat_obj@misc$cancer_regions)
+    warning("No cancer region polygons stored for FOV '", fov_name, "'. ",
+            if (length(stored) > 0) paste0("Polygons exist for: ", paste(stored, collapse = ", "), ". ")
+            else "Run add_dbscan_polygons() first. ",
+            call. = FALSE)
   }
   polygons
 }
