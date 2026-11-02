@@ -25,7 +25,9 @@ find_distance_associated_genes(
 
 - assay:
 
-  Assay name.
+  Assay name. If its \`data\` layer is empty,
+  \`Seurat::NormalizeData()\` is run with default settings on the
+  analyzed cells.
 
 - min_cells_expressing:
 

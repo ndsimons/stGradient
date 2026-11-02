@@ -31,7 +31,9 @@ find_hotspot_distance_genes(
 
 - assay:
 
-  Assay name.
+  Assay name. If its \`data\` layer is empty,
+  \`Seurat::NormalizeData()\` is run with default settings on the
+  analyzed cells.
 
 - focus:
 
