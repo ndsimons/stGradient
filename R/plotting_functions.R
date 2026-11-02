@@ -724,6 +724,8 @@ plot_roi_inout_celltype_stack <- function(
     ) |>
     dplyr::count(roi_status, .data[[celltype_col]], name = "n")
 
+  # Factor cell types turn into integer codes when combined with c() below
+  d[[celltype_col]] <- as.character(d[[celltype_col]])
   d$roi_status <- factor(d$roi_status, levels = c(inside_label, outside_label))
 
   d <- d |>
@@ -895,6 +897,8 @@ plot_roi_inout_celltype_dodge <- function(
     ) |>
     dplyr::count(roi_status, .data[[celltype_col]], name = "n")
 
+  # Factor cell types turn into integer codes when combined with c() below
+  d[[celltype_col]] <- as.character(d[[celltype_col]])
   d$roi_status <- factor(d$roi_status, levels = c(inside_label, outside_label))
 
   if (!is.null(top_n)) {
