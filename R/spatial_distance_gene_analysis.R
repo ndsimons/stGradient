@@ -85,6 +85,11 @@ warn_too_few_genes <- function(n_expressing, min_cells_expressing, n_cells, assa
 #' @param n_distance_bins Number of bins for trend summaries.
 #' @param focus Region to analyze: `peritumoral`, `intratumoral`, or `both`.
 #' @param max_dist_quantile Distance quantile used to trim extreme outliers.
+#' @param max_distance Maximum distance from the boundary to include (for
+#'   `intratumoral`, maximum absolute distance). Cells farther away are excluded
+#'   from model fitting and binning. Combined with `max_dist_quantile`: the
+#'   smaller of the two cutoffs is used. Set to `NULL` to rely on the quantile
+#'   alone.
 #' @param p_adj_threshold BH adjusted p-value threshold for significant genes.
 #' @return List containing model results, binned expression, and metadata.
 #' @export
@@ -94,8 +99,15 @@ find_distance_associated_genes <- function(seurat_obj,
                                            n_distance_bins = 10,
                                            focus = c("peritumoral", "intratumoral", "both"),
                                            max_dist_quantile = 0.95,
+                                           max_distance = 200,
                                            p_adj_threshold = 0.05) {
   focus <- match.arg(focus)
+
+  if (!is.null(max_distance) &&
+      !(is.numeric(max_distance) && length(max_distance) == 1 &&
+        is.finite(max_distance) && max_distance > 0)) {
+    stop("`max_distance` must be a single positive number or NULL.", call. = FALSE)
+  }
 
   if (!"dist_to_boundary" %in% colnames(seurat_obj@meta.data)) {
     stop("Metadata column 'dist_to_boundary' not found. Run compute_distance_from_boundary() first.")
@@ -128,8 +140,18 @@ find_distance_associated_genes <- function(seurat_obj,
     dist_values <- sub_obj$dist_to_boundary
   }
 
-  max_dist <- stats::quantile(dist_values, max_dist_quantile, na.rm = TRUE)
+  max_dist <- unname(stats::quantile(dist_values, max_dist_quantile, na.rm = TRUE))
+  if (!is.null(max_distance)) {
+    max_dist <- min(max_dist, max_distance)
+  }
   keep <- dist_values <= max_dist
+  if (sum(keep) < 20) {
+    warning(sprintf(
+      "Only %d %s cells within distance %g (need >= 20); returning NULL. Increase max_distance.",
+      sum(keep), focus, max_dist
+    ), call. = FALSE)
+    return(NULL)
+  }
   sub_obj <- subset(sub_obj, cells = colnames(sub_obj)[keep])
   dist_values <- dist_values[keep]
 
@@ -231,7 +253,8 @@ find_distance_associated_genes <- function(seurat_obj,
     binned_expr = binned_expr,
     dist_values = dist_values,
     focus = focus,
-    n_distance_bins = n_distance_bins
+    n_distance_bins = n_distance_bins,
+    max_distance = max_distance
   )
 }
 
@@ -240,17 +263,10 @@ find_distance_associated_genes <- function(seurat_obj,
 #' @param result_list Output list from `find_distance_associated_genes`.
 #' @param top_n Maximum number of significant genes shown in trend facets.
 #' @param sample_label Optional label for plot titles.
-#' @param max_distance Upper x-axis limit (distance from boundary) for the
-#'   trends plot. Set to `NULL` to show the full distance range.
-#' @return List with `volcano` and `trends` ggplot objects.
+#' @return List with `volcano` and `trends` ggplot objects. The trends x-axis
+#'   extends to the `max_distance` used in `find_distance_associated_genes()`.
 #' @export
-plot_distance_genes <- function(result_list, top_n = 12, sample_label = "",
-                                max_distance = 200) {
-  if (!is.null(max_distance) &&
-      !(is.numeric(max_distance) && length(max_distance) == 1 &&
-        is.finite(max_distance) && max_distance > 0)) {
-    stop("`max_distance` must be a single positive number or NULL.", call. = FALSE)
-  }
+plot_distance_genes <- function(result_list, top_n = 12, sample_label = "") {
   if (!requireNamespace("ggrepel", quietly = TRUE)) {
     stop("Package 'ggrepel' is required. Install with: install.packages('ggrepel')")
   }
@@ -315,6 +331,7 @@ plot_distance_genes <- function(result_list, top_n = 12, sample_label = "",
         ggplot2::theme_minimal() +
         ggplot2::theme(legend.position = "none")
 
+      max_distance <- result_list$max_distance
       if (!is.null(max_distance)) {
         x_min <- min(0, plot_data$bin_midpoint, na.rm = TRUE)
         p_trends <- p_trends + ggplot2::coord_cartesian(xlim = c(x_min, max_distance))

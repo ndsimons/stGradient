@@ -11,6 +11,7 @@ find_distance_associated_genes(
   n_distance_bins = 10,
   focus = c("peritumoral", "intratumoral", "both"),
   max_dist_quantile = 0.95,
+  max_distance = 200,
   p_adj_threshold = 0.05
 )
 }
@@ -27,6 +28,12 @@ is run with default settings on the analyzed cells.}
 \item{focus}{Region to analyze: `peritumoral`, `intratumoral`, or `both`.}
 
 \item{max_dist_quantile}{Distance quantile used to trim extreme outliers.}
+
+\item{max_distance}{Maximum distance from the boundary to include (for
+`intratumoral`, maximum absolute distance). Cells farther away are excluded
+from model fitting and binning. Combined with `max_dist_quantile`: the
+smaller of the two cutoffs is used. Set to `NULL` to rely on the quantile
+alone.}
 
 \item{p_adj_threshold}{BH adjusted p-value threshold for significant genes.}
 }
