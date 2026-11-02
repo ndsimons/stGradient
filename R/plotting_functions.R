@@ -47,6 +47,33 @@ brca_atlas_colors <- function() {
   )
 }
 
+#' Default Discrete Cell Type Palette
+#'
+#' Assigns colors from a curated qualitative palette of muted, complementary
+#' hues to the supplied cell types. Colors are assigned in sorted order so a
+#' given set of cell types always gets the same colors. More than 20 types fall
+#' back to evenly spaced HCL hues.
+#'
+#' @param types Character vector of cell type labels.
+#' @return Named character vector of colors.
+#' @keywords internal
+celltype_palette <- function(types) {
+  types <- sort(unique(as.character(types[!is.na(types)])))
+  # Ten distinct hues first, then lighter partners of the same hues
+  base <- c(
+    "#4E79A7", "#F28E2B", "#59A14F", "#E15759", "#499894",
+    "#B6992D", "#D37295", "#B07AA1", "#9D7660", "#264653",
+    "#A0CBE8", "#FFBE7D", "#8CD17D", "#FF9D9A", "#86BCB6",
+    "#F1CE63", "#FABFD2", "#D4A6C8", "#D7B5A6", "#7A9CA8"
+  )
+  cols <- if (length(types) <= length(base)) {
+    base[seq_along(types)]
+  } else {
+    grDevices::hcl.colors(length(types), palette = "Dynamic")
+  }
+  stats::setNames(cols, types)
+}
+
 #' Plot Distance Profile Comparison
 #'
 #' Plots transcriptomic distance for different inside modes
@@ -664,7 +691,9 @@ plot_roi_celltype_dist <- function(
 #' @param df Data frame with ROI and cell type columns
 #' @param roi_col ROI indicator column name
 #' @param celltype_col Cell type column name
-#' @param celltype_colors Optional named cell type color vector
+#' @param celltype_colors Optional named cell type color vector. If `NULL`, the
+#'   brca atlas palette is used for `"singleR.predicted.id.brcaAtlas"`, otherwise
+#'   a built-in qualitative palette.
 #' @param metric One of "count" or "proportion"
 #' @param order_by One of "inside", "total", "palette", "none"
 #' @param inside_label Label for inside ROI group
@@ -797,6 +826,8 @@ plot_roi_inout_celltype_stack <- function(
       stop("celltype_colors must be a *named* vector: names = cell type labels, values = colors.")
     }
     p <- p + ggplot2::scale_fill_manual(values = celltype_colors, drop = FALSE)
+  } else {
+    p <- p + ggplot2::scale_fill_manual(values = celltype_palette(d[[celltype_col]]))
   }
 
   if (!isTRUE(legend)) {

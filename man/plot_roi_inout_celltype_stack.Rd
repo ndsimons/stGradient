@@ -28,7 +28,9 @@ plot_roi_inout_celltype_stack(
 
 \item{celltype_col}{Cell type column name}
 
-\item{celltype_colors}{Optional named cell type color vector}
+\item{celltype_colors}{Optional named cell type color vector. If `NULL`, the
+brca atlas palette is used for `"singleR.predicted.id.brcaAtlas"`, otherwise
+a built-in qualitative palette.}
 
 \item{metric}{One of "count" or "proportion"}
 
