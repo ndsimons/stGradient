@@ -1,4 +1,4 @@
-# stGradient <img src="man/figures/stGradientLogo.png" align="right" width="305" height="352" vspace="20" />
+# stGradient <img src="man/figures/stGradientLogo.png" align="right" width="305" height="352" vspace="100" />
 
 <!-- badges: start -->
 <!-- badges: end -->
