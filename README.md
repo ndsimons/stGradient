@@ -1,7 +1,8 @@
-# stGradient <img src="man/figures/stGradientLogo.png" align="right" width="305" height="352" />
+# stGradient
 
 <!-- badges: start -->
 <!-- badges: end -->
+<img src="man/figures/stGradientLogo.png" align="right" width="152" height="175" />
 
 ### R toolkit for distance-based analyses of spatial transcriptomics data
 
@@ -62,7 +63,7 @@ plot_all_metrics(results$profile)
 
 If you use stGradient in your research, please cite:
 
-> Simons, N.D. (2025). stGradient: R toolkit for distance-based analyses of spatial transcriptomics data.
+> Simons, N.D. (2026). stGradient: R toolkit for distance-based analyses of spatial transcriptomics data.
 
 ## Contact
 
