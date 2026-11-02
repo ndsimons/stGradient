@@ -22,7 +22,8 @@ get_cancer_regions(seurat_obj, fov_name = "fov")
 
 ## Value
 
-sf object of cancer region polygons, or \`NULL\` if none are stored
+sf object of cancer region polygons, or \`NULL\` with a warning if none
+are stored for \`fov_name\`
 
 ## Examples
 
