@@ -117,8 +117,13 @@ peritumoral/stromal cells.</p>
 <span>  min_cells_expressing <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  n_distance_bins <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  max_dist_quantile <span class="op">=</span> <span class="fl">0.95</span>,</span>
+<span>  max_distance <span class="op">=</span> <span class="fl">200</span>,</span>
 <span>  p_adj_threshold <span class="op">=</span> <span class="fl">0.05</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+<p><code>max_distance</code> caps how far from the boundary cells are
+included (default 200). The smaller of <code>max_distance</code> and the
+<code>max_dist_quantile</code> cutoff is used. The trends plot x-axis
+extends to <code>max_distance</code>.</p>
 <div class="section level4">
 <h4 id="focus-options">Focus Options<a class="anchor" aria-label="anchor" href="#focus-options"></a>
 </h4>

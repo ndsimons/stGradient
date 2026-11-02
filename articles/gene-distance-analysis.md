@@ -43,9 +43,14 @@ dist_res <- find_distance_associated_genes(
   min_cells_expressing = 10,
   n_distance_bins = 10,
   max_dist_quantile = 0.95,
+  max_distance = 200,
   p_adj_threshold = 0.05
 )
 ```
+
+`max_distance` caps how far from the boundary cells are included
+(default 200). The smaller of `max_distance` and the `max_dist_quantile`
+cutoff is used. The trends plot x-axis extends to `max_distance`.
 
 #### Focus Options
 

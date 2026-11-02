@@ -5,12 +5,7 @@ Plot Distance-Associated Gene Results
 ## Usage
 
 ``` r
-plot_distance_genes(
-  result_list,
-  top_n = 12,
-  sample_label = "",
-  max_distance = 200
-)
+plot_distance_genes(result_list, top_n = 12, sample_label = "")
 ```
 
 ## Arguments
@@ -27,11 +22,8 @@ plot_distance_genes(
 
   Optional label for plot titles.
 
-- max_distance:
-
-  Upper x-axis limit (distance from boundary) for the trends plot. Set
-  to \`NULL\` to show the full distance range.
-
 ## Value
 
-List with \`volcano\` and \`trends\` ggplot objects.
+List with \`volcano\` and \`trends\` ggplot objects. The trends x-axis
+extends to the \`max_distance\` used in
+\`find_distance_associated_genes()\`.

@@ -52,12 +52,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">plot_distance_genes</span><span class="op">(</span></span>
-<span>  <span class="va">result_list</span>,</span>
-<span>  top_n <span class="op">=</span> <span class="fl">12</span>,</span>
-<span>  sample_label <span class="op">=</span> <span class="st">""</span>,</span>
-<span>  max_distance <span class="op">=</span> <span class="fl">200</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">plot_distance_genes</span><span class="op">(</span><span class="va">result_list</span>, top_n <span class="op">=</span> <span class="fl">12</span>, sample_label <span class="op">=</span> <span class="st">""</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -75,15 +70,11 @@
 <dt id="arg-sample-label">sample_label<a class="anchor" aria-label="anchor" href="#arg-sample-label"></a></dt>
 <dd><p>Optional label for plot titles.</p></dd>
 
-
-<dt id="arg-max-distance">max_distance<a class="anchor" aria-label="anchor" href="#arg-max-distance"></a></dt>
-<dd><p>Upper x-axis limit (distance from boundary) for the
-trends plot. Set to `NULL` to show the full distance range.</p></dd>
-
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>List with `volcano` and `trends` ggplot objects.</p>
+    <p>List with `volcano` and `trends` ggplot objects. The trends x-axis
+  extends to the `max_distance` used in `find_distance_associated_genes()`.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

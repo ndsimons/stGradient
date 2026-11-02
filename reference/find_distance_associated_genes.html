@@ -62,6 +62,7 @@ tumor boundary.</p>
 <span>  n_distance_bins <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  focus <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"peritumoral"</span>, <span class="st">"intratumoral"</span>, <span class="st">"both"</span><span class="op">)</span>,</span>
 <span>  max_dist_quantile <span class="op">=</span> <span class="fl">0.95</span>,</span>
+<span>  max_distance <span class="op">=</span> <span class="fl">200</span>,</span>
 <span>  p_adj_threshold <span class="op">=</span> <span class="fl">0.05</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -93,6 +94,14 @@ is run with default settings on the analyzed cells.</p></dd>
 
 <dt id="arg-max-dist-quantile">max_dist_quantile<a class="anchor" aria-label="anchor" href="#arg-max-dist-quantile"></a></dt>
 <dd><p>Distance quantile used to trim extreme outliers.</p></dd>
+
+
+<dt id="arg-max-distance">max_distance<a class="anchor" aria-label="anchor" href="#arg-max-distance"></a></dt>
+<dd><p>Maximum distance from the boundary to include (for
+`intratumoral`, maximum absolute distance). Cells farther away are excluded
+from model fitting and binning. Combined with `max_dist_quantile`: the
+smaller of the two cutoffs is used. Set to `NULL` to rely on the quantile
+alone.</p></dd>
 
 
 <dt id="arg-p-adj-threshold">p_adj_threshold<a class="anchor" aria-label="anchor" href="#arg-p-adj-threshold"></a></dt>
