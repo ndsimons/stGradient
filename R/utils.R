@@ -1,3 +1,51 @@
+#' Get Cell Coordinates Keyed by Cell ID
+#'
+#' Internal helper that returns tissue coordinates matched to Seurat cell IDs.
+#' Uses the Seurat v5 `cell` column when present, otherwise the coordinate
+#' rownames. Never matches coordinates to cells by position.
+#'
+#' @param seurat_obj Seurat object.
+#' @param fov_name Field of view/image name.
+#' @return Data frame with `cell_id`, `x`, `y` and rownames set to cell IDs,
+#'   restricted to cells present in both the FOV and `seurat_obj`, in
+#'   `colnames(seurat_obj)` order.
+#' @keywords internal
+get_cell_coords <- function(seurat_obj, fov_name = "fov") {
+  coords <- as.data.frame(Seurat::GetTissueCoordinates(seurat_obj, image = fov_name))
+  
+  if (!all(c("x", "y") %in% colnames(coords))) {
+    stop("Coordinates for '", fov_name, "' must contain x/y columns. Found: ",
+         paste(colnames(coords), collapse = ", "))
+  }
+  
+  cell_ids <- if ("cell" %in% colnames(coords)) as.character(coords$cell) else rownames(coords)
+  out <- data.frame(cell_id = cell_ids, x = coords$x, y = coords$y,
+                    stringsAsFactors = FALSE)
+  out <- out[!duplicated(out$cell_id), , drop = FALSE]
+  rownames(out) <- out$cell_id
+  
+  shared <- intersect(colnames(seurat_obj), out$cell_id)
+  if (length(shared) == 0) {
+    stop("No coordinate cell IDs in '", fov_name, "' match colnames(seurat_obj).")
+  }
+  
+  out[shared, , drop = FALSE]
+}
+
+# Expand per-cell values to all cells in the object, NA for cells without coordinates.
+expand_to_all_cells <- function(values, cell_ids, seurat_obj, what = "values") {
+  all_cells <- colnames(seurat_obj)
+  n_missing <- length(all_cells) - length(cell_ids)
+  if (n_missing > 0) {
+    warning(n_missing, " cell(s) have no coordinates in this FOV; ", what,
+            " set to NA for those cells.", call. = FALSE)
+  }
+  out <- values[rep(NA_integer_, length(all_cells))]
+  names(out) <- all_cells
+  out[cell_ids] <- values
+  out
+}
+
 #' Parse SVG Path to Coordinates
 #'
 #' Internal function to parse plotly SVG paths
@@ -43,13 +91,15 @@ parse_svg_path <- function(path_string) {
 #' @return Seurat object with added metadata
 #' @export
 add_polygon_membership <- function(seurat_obj, polygons, fov_name = "fov") {
-  coords <- Seurat::GetTissueCoordinates(seurat_obj, image = fov_name)
+  coords <- get_cell_coords(seurat_obj, fov_name)
   coords_sf <- sf::st_as_sf(coords, coords = c("x", "y"))
   
   cells_inside <- sf::st_intersects(coords_sf, polygons, sparse = FALSE)
   is_inside <- apply(cells_inside, 1, any)
   
-  seurat_obj$inside_polygon <- is_inside
+  seurat_obj$inside_polygon <- expand_to_all_cells(
+    is_inside, coords$cell_id, seurat_obj, "inside_polygon"
+  )
   
   return(seurat_obj)
 }
@@ -57,8 +107,9 @@ add_polygon_membership <- function(seurat_obj, polygons, fov_name = "fov") {
 #' Automatically detect cancer cell regions and create polygons
 #'
 #' Uses DBSCAN clustering on cancer cell coordinates to identify spatial regions,
-#' then creates concave hull polygons around each cluster. Adds polygons to the
-#' Seurat object's FOV.
+#' then creates concave hull polygons around each cluster. Stores the polygons in
+#' `seurat_obj@misc$cancer_regions[[fov_name]]` (retrieve them with
+#' [get_cancer_regions()]) and adds an `inside_polygon` metadata column.
 #'
 #' @param seurat_obj Seurat object with spatial coordinates
 #' @param fov_name Name of the field of view (default: "fov")
@@ -68,7 +119,8 @@ add_polygon_membership <- function(seurat_obj, polygons, fov_name = "fov") {
 #' @param concavity Concave hull concavity parameter, lower = tighter fit (default: 2)
 #' @param length_threshold Edge length threshold for concave hull (default: 0)
 #'
-#' @return Seurat object with cancer region polygons added to FOV
+#' @return Seurat object with cancer region polygons stored in `@misc` and
+#'   `inside_polygon` metadata
 #' @export
 #' 
 #' @examples
@@ -96,14 +148,14 @@ add_dbscan_polygons <- function(seurat_obj,
   }
   
   # Get tissue coordinates
-  coords <- Seurat::GetTissueCoordinates(seurat_obj, image = fov_name)
+  coords <- get_cell_coords(seurat_obj, fov_name)
   
   # Check if cancer column exists
   if (!cancer_col %in% colnames(seurat_obj@meta.data)) {
     stop(paste0("Column '", cancer_col, "' not found in metadata"))
   }
   
-  coords$is_cancer <- seurat_obj@meta.data[[cancer_col]]
+  coords$is_cancer <- seurat_obj@meta.data[coords$cell_id, cancer_col]
   
   # Filter to cancer cells only
   cancer_coords <- coords %>% dplyr::filter(is_cancer == TRUE)
@@ -149,13 +201,45 @@ add_dbscan_polygons <- function(seurat_obj,
   # Combine all polygons
   auto_polygons <- do.call(rbind, polygon_list)
   
-  # Add polygons to Seurat object FOV
+  # Store in @misc: FOV boundaries only accept Segmentation/Centroids objects,
+  # and an sf object there breaks subset()
   message("Adding polygons to Seurat object...")
-  seurat_obj@images[[fov_name]]@boundaries$cancer_regions <- auto_polygons
-  seurat_obj <- add_polygon_membership(seurat_obj,auto_polygons)
+  if (is.null(seurat_obj@misc$cancer_regions)) {
+    seurat_obj@misc$cancer_regions <- list()
+  }
+  seurat_obj@misc$cancer_regions[[fov_name]] <- auto_polygons
+  seurat_obj <- add_polygon_membership(seurat_obj, auto_polygons, fov_name = fov_name)
   message(paste0("Successfully added ", n_clusters, " cancer region polygons"))
   
   return(seurat_obj)
+}
+
+#' Get Cancer Region Polygons
+#'
+#' Retrieves the polygons stored by [add_dbscan_polygons()] for a field of view.
+#' Also reads polygons from the FOV `boundaries` slot, where objects created by
+#' earlier versions of stGradient stored them.
+#'
+#' @param seurat_obj Seurat object processed with [add_dbscan_polygons()]
+#' @param fov_name Name of the field of view (default: "fov")
+#' @return sf object of cancer region polygons, or `NULL` if none are stored
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' seurat_obj <- add_dbscan_polygons(seurat_obj)
+#' auto_polygons <- get_cancer_regions(seurat_obj)
+#' }
+get_cancer_regions <- function(seurat_obj, fov_name = "fov") {
+  polygons <- seurat_obj@misc$cancer_regions[[fov_name]]
+  if (is.null(polygons) && fov_name %in% names(seurat_obj@images)) {
+    legacy <- tryCatch(
+      seurat_obj@images[[fov_name]]@boundaries$cancer_regions,
+      error = function(e) NULL
+    )
+    if (inherits(legacy, "sf")) polygons <- legacy
+  }
+  polygons
 }
 
 #' Optimize DBSCAN Parameters via Silhouette Score
@@ -207,13 +291,13 @@ optimize_dbscan_params <- function(seurat_obj,
   }
 
  # Get tissue coordinates
-  coords <- Seurat::GetTissueCoordinates(seurat_obj, image = fov_name)
+  coords <- get_cell_coords(seurat_obj, fov_name)
 
   if (!cancer_col %in% colnames(seurat_obj@meta.data)) {
     stop(paste0("Column '", cancer_col, "' not found in metadata"))
   }
 
-  coords$is_cancer <- seurat_obj@meta.data[[cancer_col]]
+  coords$is_cancer <- seurat_obj@meta.data[coords$cell_id, cancer_col]
   cancer_coords <- coords %>% dplyr::filter(is_cancer == TRUE)
 
   if (nrow(cancer_coords) == 0) {
@@ -335,8 +419,8 @@ plot_dbscan_polygons <- function(seurat_obj,
   }
   
   # Get coordinates and cancer annotation
-  coords <- Seurat::GetTissueCoordinates(seurat_obj, image = fov)
-  coords$is_cancer <- seurat_obj$is_cancer
+  coords <- get_cell_coords(seurat_obj, fov)
+  coords$is_cancer <- seurat_obj@meta.data[coords$cell_id, "is_cancer"]
   
   # Convert to sf object
   coords_sf <- sf::st_as_sf(coords, coords = c("x", "y"))
@@ -424,7 +508,7 @@ plot_dbscan_polygons <- function(seurat_obj,
 #' Load Xenium Seurat Object with Stable Cell IDs
 #'
 #' Reads a Seurat object from RDS, enforces unique cell IDs, optionally computes
-#' cancer and ROI metadata columns, and stores coordinate mapping helpers.
+#' cancer and ROI metadata columns, and stores coordinates keyed by cell ID.
 #'
 #' @param rds_path Path to serialized Seurat object (.rds)
 #' @param image Optional image/FOV name to use for coordinates
@@ -484,40 +568,19 @@ load_xenium_seurat <- function(
       stop("Requested image not found. Available images: ", paste(imgs, collapse = ", "))
     }
 
-    coords <- Seurat::GetTissueCoordinates(obj, image = image)
-    df <- as.data.frame(coords)
+    df <- get_cell_coords(obj, image)
 
-    rn <- rownames(coords)
-    idx <- suppressWarnings(as.integer(rn))
-
-    if (!all(is.na(idx)) && all(!is.na(idx))) {
-      if (max(idx) <= ncol(obj) && min(idx) >= 1) {
-        df$cell_id <- colnames(obj)[idx]
-      } else {
-        df$cell_id <- NA_character_
-        warning(
-          "Coordinate rownames look numeric but exceed cell count (or are out of range). ",
-          "Could not map coords -> cell_id by index. Inspect GetTissueCoordinates output."
-        )
-      }
-    } else {
-      df$cell_id <- rn
+    if (roi_col %in% colnames(obj@meta.data)) {
+      df[[roi_col]] <- obj@meta.data[df$cell_id, roi_col]
     }
-
-    if (any(!is.na(df$cell_id))) {
-      if (roi_col %in% colnames(obj@meta.data)) {
-        df[[roi_col]] <- obj[[roi_col, drop = TRUE]][df$cell_id]
-      }
-      if ("is_cancer" %in% colnames(obj@meta.data)) {
-        df$is_cancer <- obj$is_cancer[df$cell_id]
-      }
-      if (celltype_col %in% colnames(obj@meta.data)) {
-        df[[celltype_col]] <- obj[[celltype_col, drop = TRUE]][df$cell_id]
-      }
+    if ("is_cancer" %in% colnames(obj@meta.data)) {
+      df$is_cancer <- obj@meta.data[df$cell_id, "is_cancer"]
+    }
+    if (celltype_col %in% colnames(obj@meta.data)) {
+      df[[celltype_col]] <- obj@meta.data[df$cell_id, celltype_col]
     }
 
     obj@misc$xenium_image_name <- image
-    obj@misc$coords_index_to_cell_id <- stats::setNames(df$cell_id, rownames(coords))
     if (store_coords) {
       obj@misc[[coords_name]] <- df
     }

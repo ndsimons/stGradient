@@ -46,7 +46,7 @@ Option B — Automated (DBSCAN):
 
 ```{r automated}
 seurat_obj <- add_dbscan_polygons(seurat_obj)
-auto_polygons <- seurat_obj@images[["fov"]]@boundaries$cancer_regions
+auto_polygons <- get_cancer_regions(seurat_obj)
 ```
 
 See: [Region Selection](region-selection.html)

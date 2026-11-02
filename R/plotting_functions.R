@@ -292,23 +292,7 @@ qc_plot_xenium <- function(
       stop("Requested image not found. Available images: ", paste(imgs, collapse = ", "))
     }
 
-    coords <- Seurat::GetTissueCoordinates(obj, image = image)
-    df <- as.data.frame(coords)
-
-    rn <- rownames(coords)
-    idx <- suppressWarnings(as.integer(rn))
-    if (!all(is.na(idx)) && all(!is.na(idx))) {
-      if (max(idx) <= ncol(obj) && min(idx) >= 1) {
-        df$cell_id <- colnames(obj)[idx]
-      } else {
-        stop(
-          "GetTissueCoordinates() rownames look numeric but are out of range for ncol(obj). ",
-          "Cannot map coords to cell IDs safely."
-        )
-      }
-    } else {
-      df$cell_id <- rn
-    }
+    df <- get_cell_coords(obj, image)
 
     obj@misc$xenium_image_name <- image
   }

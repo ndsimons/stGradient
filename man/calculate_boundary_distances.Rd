@@ -14,7 +14,8 @@ calculate_boundary_distances(seurat_obj, polygons, fov_name = "fov")
 \item{fov_name}{Name of FOV in Seurat object}
 }
 \value{
-Numeric vector of signed distances (negative = inside)
+Named numeric vector of signed distances (negative = inside), in
+  `colnames(seurat_obj)` order; `NA` for cells without coordinates in the FOV.
 }
 \description{
 Calculates signed distance from each cell to polygon boundary

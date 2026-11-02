@@ -15,21 +15,16 @@ compute_distance_from_boundary <- function(seurat_obj,
                                            intratumoral_label = TRUE,
                                            fov_name = "fov",
                                            concavity = 2) {
-  coords <- Seurat::GetTissueCoordinates(seurat_obj, image = fov_name)
-  if ("cell" %in% colnames(coords)) {
-    rownames(coords) <- coords$cell
-    coords$cell <- NULL
-  }
-  coords <- coords[colnames(seurat_obj), c("x", "y"), drop = FALSE]
+  coords <- get_cell_coords(seurat_obj, fov_name)
 
-  meta <- seurat_obj@meta.data
+  meta <- seurat_obj@meta.data[coords$cell_id, , drop = FALSE]
   is_intratumoral <- as.character(meta[[polygon_col]]) == as.character(intratumoral_label)
 
   if (sum(is_intratumoral, na.rm = TRUE) < 10) {
     stop("Too few intratumoral cells to build a boundary polygon.")
   }
 
-  intra_coords <- coords[is_intratumoral, , drop = FALSE]
+  intra_coords <- coords[which(is_intratumoral), c("x", "y"), drop = FALSE]
   intra_sf <- sf::st_as_sf(intra_coords, coords = c("x", "y"))
   boundary_polygon <- concaveman::concaveman(intra_sf, concavity = concavity)
 
@@ -38,6 +33,8 @@ compute_distance_from_boundary <- function(seurat_obj,
   distances <- as.numeric(sf::st_distance(all_points, boundary_line))
   inside <- sf::st_within(all_points, boundary_polygon, sparse = FALSE)[, 1]
   signed_distance <- ifelse(inside, -distances, distances)
+  signed_distance <- expand_to_all_cells(signed_distance, coords$cell_id, seurat_obj,
+                                         "dist_to_boundary")
 
   seurat_obj$dist_to_boundary <- signed_distance
   seurat_obj$abs_dist_to_boundary <- abs(signed_distance)
@@ -247,13 +244,15 @@ plot_distance_genes <- function(result_list, top_n = 12, sample_label = "") {
 
   p_trends <- NULL
   if (!is.null(binned)) {
+    n_up <- ceiling(top_n / 2)
+    n_down <- top_n - n_up
     top_up <- results %>%
       dplyr::filter(p_adj_lm < 0.05, coef > 0) %>%
-      dplyr::slice_min(p_adj_lm, n = top_n / 2) %>%
+      dplyr::slice_min(p_adj_lm, n = n_up) %>%
       dplyr::pull(gene)
     top_down <- results %>%
       dplyr::filter(p_adj_lm < 0.05, coef < 0) %>%
-      dplyr::slice_min(p_adj_lm, n = top_n / 2) %>%
+      dplyr::slice_min(p_adj_lm, n = n_down) %>%
       dplyr::pull(gene)
     plot_data <- binned %>% dplyr::filter(gene %in% c(top_up, top_down))
 
@@ -304,13 +303,9 @@ define_tcell_hotspots <- function(seurat_obj,
     stop("Package 'dbscan' is required. Install with: install.packages('dbscan')")
   }
 
-  meta <- seurat_obj@meta.data
-  coords <- Seurat::GetTissueCoordinates(seurat_obj, image = fov_name)
-  if ("cell" %in% colnames(coords)) {
-    rownames(coords) <- coords$cell
-    coords$cell <- NULL
-  }
-  coords <- coords[colnames(seurat_obj), c("x", "y"), drop = FALSE]
+  coords <- get_cell_coords(seurat_obj, fov_name)
+  meta <- seurat_obj@meta.data[coords$cell_id, , drop = FALSE]
+  coords <- coords[, c("x", "y"), drop = FALSE]
 
   is_intra <- as.character(meta[[polygon_col]]) == as.character(intratumoral_label)
   is_tcell <- as.character(meta[[celltype_col]]) %in% tcell_labels
@@ -359,12 +354,18 @@ define_tcell_hotspots <- function(seurat_obj,
   names(cluster_lookup) <- colnames(seurat_obj)
   cluster_lookup[rownames(tcell_coords)] <- tcell_coords$hotspot_cluster
 
+  hotspot_assigned <- stats::setNames(rep(FALSE, ncol(seurat_obj)), colnames(seurat_obj))
+  hotspot_assigned[rownames(coords)] <- keep_mask
+
   tcell_meta <- data.frame(
     cell_id = colnames(seurat_obj),
-    hotspot_assigned = keep_mask,
-    hotspot_cluster = cluster_lookup,
-    dist_to_hotspot = dist_to_hs,
-    signed_dist_hotspot = signed_dist,
+    hotspot_assigned = unname(hotspot_assigned),
+    hotspot_cluster = unname(cluster_lookup),
+    dist_to_hotspot = unname(expand_to_all_cells(dist_to_hs, rownames(coords), seurat_obj,
+                                                 "hotspot distances")),
+    signed_dist_hotspot = unname(suppressWarnings(
+      expand_to_all_cells(signed_dist, rownames(coords), seurat_obj)
+    )),
     stringsAsFactors = FALSE
   )
 
@@ -544,13 +545,8 @@ plot_tcell_hotspots <- function(seurat_obj,
                                 tcell_labels = c("T Cells CD4+", "T Cells CD8+"),
                                 sample_label = "",
                                 fov_name = "fov") {
-  coords <- Seurat::GetTissueCoordinates(seurat_obj, image = fov_name)
-  if ("cell" %in% colnames(coords)) {
-    rownames(coords) <- coords$cell
-    coords$cell <- NULL
-  }
-  coords <- coords[colnames(seurat_obj), c("x", "y"), drop = FALSE]
-  coords$celltype <- as.character(seurat_obj@meta.data[[celltype_col]])
+  coords <- get_cell_coords(seurat_obj, fov_name)
+  coords$celltype <- as.character(seurat_obj@meta.data[coords$cell_id, celltype_col])
   coords$is_tcell <- coords$celltype %in% tcell_labels
 
   hs_sf <- hotspot_result$hotspot_sf

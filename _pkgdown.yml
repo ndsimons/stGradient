@@ -61,6 +61,7 @@ reference:
     desc: Define tumor regions via DBSCAN or interactive polygons
     contents:
       - add_dbscan_polygons
+      - get_cancer_regions
       - optimize_dbscan_params
       - add_polygon_membership
       - plot_dbscan_polygons

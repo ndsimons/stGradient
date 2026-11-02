@@ -43,7 +43,7 @@ seurat_obj <- load_xenium_seurat(
 
 # Automatically detect tumor regions with DBSCAN
 seurat_obj <- add_dbscan_polygons(seurat_obj)
-auto_polygons <- seurat_obj@images[["fov"]]@boundaries$cancer_regions
+auto_polygons <- get_cancer_regions(seurat_obj)
 
 # Calculate boundary distances
 seurat_obj$boundary_distance <- calculate_boundary_distances(seurat_obj, auto_polygons)

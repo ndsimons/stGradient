@@ -5,10 +5,11 @@
 #' @param seurat_obj Seurat object with spatial data
 #' @param polygons sf polygon object
 #' @param fov_name Name of FOV in Seurat object
-#' @return Numeric vector of signed distances (negative = inside)
+#' @return Named numeric vector of signed distances (negative = inside), in
+#'   `colnames(seurat_obj)` order; `NA` for cells without coordinates in the FOV.
 #' @export
 calculate_boundary_distances <- function(seurat_obj, polygons, fov_name = "fov") {
-  coords <- Seurat::GetTissueCoordinates(seurat_obj, image = fov_name)
+  coords <- get_cell_coords(seurat_obj, fov_name)
   coords_sf <- sf::st_as_sf(coords, coords = c("x", "y"))
   
   polygon_boundaries <- sf::st_cast(polygons, "MULTILINESTRING")
@@ -21,7 +22,7 @@ calculate_boundary_distances <- function(seurat_obj, polygons, fov_name = "fov")
   
   signed_distances <- ifelse(is_inside, -min_distances, min_distances)
   
-  return(signed_distances)
+  return(expand_to_all_cells(signed_distances, coords$cell_id, seurat_obj, "boundary distances"))
 }
 
 #' Calculate Transcriptomic Distance

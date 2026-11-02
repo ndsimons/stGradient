@@ -54,8 +54,8 @@ launch_stGradient <- function() {
     shiny::observeEvent(input$load_data, {
       tryCatch({
         seurat_obj <- get(input$seurat_name, envir = .GlobalEnv)
-        coords <- Seurat::GetTissueCoordinates(seurat_obj, image = input$fov_name)
-        coords$is_cancer <- seurat_obj$is_cancer
+        coords <- get_cell_coords(seurat_obj, input$fov_name)
+        coords$is_cancer <- seurat_obj@meta.data[coords$cell_id, "is_cancer"]
         
         rv$coords <- coords
         rv$shapes <- NULL

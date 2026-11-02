@@ -26,20 +26,8 @@ build_outside_ppp <- function(seurat_obj,
     stop("Column '", celltype_col, "' not found in seurat_obj@meta.data")
   }
 
-  coords <- Seurat::GetTissueCoordinates(seurat_obj, image = fov_name)
-  coords_df <- as.data.frame(coords)
-
-  rn <- rownames(coords_df)
-  idx <- suppressWarnings(as.integer(rn))
-  if (!all(is.na(idx)) && all(!is.na(idx)) && min(idx) >= 1 && max(idx) <= ncol(seurat_obj)) {
-    coords_df$cell_id <- colnames(seurat_obj)[idx]
-  } else {
-    coords_df$cell_id <- rn
-  }
-
-  ct_vec <- seurat_obj[[celltype_col, drop = TRUE]]
-  names(ct_vec) <- colnames(seurat_obj)
-  coords_df$cellType <- unname(ct_vec[coords_df$cell_id])
+  coords_df <- get_cell_coords(seurat_obj, fov_name)
+  coords_df$cellType <- as.character(seurat_obj@meta.data[coords_df$cell_id, celltype_col])
 
   coords_sf <- sf::st_as_sf(coords_df, coords = c("x", "y"))
   inside_mat <- sf::st_intersects(coords_sf, polygons, sparse = FALSE)

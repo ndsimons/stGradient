@@ -30,12 +30,14 @@ add_dbscan_polygons(
 \item{length_threshold}{Edge length threshold for concave hull (default: 0)}
 }
 \value{
-Seurat object with cancer region polygons added to FOV
+Seurat object with cancer region polygons stored in `@misc` and
+  `inside_polygon` metadata
 }
 \description{
 Uses DBSCAN clustering on cancer cell coordinates to identify spatial regions,
-then creates concave hull polygons around each cluster. Adds polygons to the
-Seurat object's FOV.
+then creates concave hull polygons around each cluster. Stores the polygons in
+`seurat_obj@misc$cancer_regions[[fov_name]]` (retrieve them with
+[get_cancer_regions()]) and adds an `inside_polygon` metadata column.
 }
 \examples{
 \dontrun{
