@@ -5,7 +5,12 @@ Shows proportion trajectories for top cell types
 ## Usage
 
 ``` r
-plot_celltype_proportions(celltype_contributions, top_n = 5)
+plot_celltype_proportions(
+  celltype_contributions,
+  top_n = 5,
+  span = 0.3,
+  level = 0.95
+)
 ```
 
 ## Arguments
@@ -17,6 +22,14 @@ plot_celltype_proportions(celltype_contributions, top_n = 5)
 - top_n:
 
   Number of top cell types to show
+
+- span:
+
+  Loess smoothing span
+
+- level:
+
+  Confidence level for the loess ribbon
 
 ## Value
 

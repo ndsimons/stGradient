@@ -52,7 +52,12 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">plot_celltype_proportions</span><span class="op">(</span><span class="va">celltype_contributions</span>, top_n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">plot_celltype_proportions</span><span class="op">(</span></span>
+<span>  <span class="va">celltype_contributions</span>,</span>
+<span>  top_n <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  span <span class="op">=</span> <span class="fl">0.3</span>,</span>
+<span>  level <span class="op">=</span> <span class="fl">0.95</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -65,6 +70,14 @@
 
 <dt id="arg-top-n">top_n<a class="anchor" aria-label="anchor" href="#arg-top-n"></a></dt>
 <dd><p>Number of top cell types to show</p></dd>
+
+
+<dt id="arg-span">span<a class="anchor" aria-label="anchor" href="#arg-span"></a></dt>
+<dd><p>Loess smoothing span</p></dd>
+
+
+<dt id="arg-level">level<a class="anchor" aria-label="anchor" href="#arg-level"></a></dt>
+<dd><p>Confidence level for the loess ribbon</p></dd>
 
 </dl></div>
     <div class="section level2">
