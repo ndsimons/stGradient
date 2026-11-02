@@ -40,7 +40,9 @@ plot_roi_inout_celltype_stack(
 
 - celltype_colors:
 
-  Optional named cell type color vector
+  Optional named cell type color vector. If \`NULL\`, the brca atlas
+  palette is used for \`"singleR.predicted.id.brcaAtlas"\`, otherwise a
+  built-in qualitative palette.
 
 - metric:
 
