@@ -22,10 +22,8 @@
 <url><loc>/reference/calculate_transcriptomic_distance.html</loc></url>
 <url><loc>/reference/celltype_palette.html</loc></url>
 <url><loc>/reference/compute_distance_from_boundary.html</loc></url>
-<url><loc>/reference/define_tcell_hotspots.html</loc></url>
 <url><loc>/reference/find_critical_distance.html</loc></url>
 <url><loc>/reference/find_distance_associated_genes.html</loc></url>
-<url><loc>/reference/find_hotspot_distance_genes.html</loc></url>
 <url><loc>/reference/get_cancer_regions.html</loc></url>
 <url><loc>/reference/get_cell_coords.html</loc></url>
 <url><loc>/reference/index.html</loc></url>
@@ -45,7 +43,6 @@
 <url><loc>/reference/plot_roi_celltype_dist.html</loc></url>
 <url><loc>/reference/plot_roi_inout_celltype_dodge.html</loc></url>
 <url><loc>/reference/plot_roi_inout_celltype_stack.html</loc></url>
-<url><loc>/reference/plot_tcell_hotspots.html</loc></url>
 <url><loc>/reference/qc_plot_xenium.html</loc></url>
 </urlset>
 

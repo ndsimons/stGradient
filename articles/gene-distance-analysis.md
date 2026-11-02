@@ -3,9 +3,9 @@
 ## Introduction
 
 stGradient provides tools to model individual gene expression as a
-function of distance from tumor boundaries or T-cell hotspots. This
-identifies genes whose expression systematically increases or decreases
-with distance from key spatial landmarks.
+function of distance from tumor boundaries. This identifies genes whose
+expression systematically increases or decreases with distance from the
+boundary.
 
 ## Boundary Distance-Gene Analysis
 
@@ -75,61 +75,10 @@ dist_plots$trends
 
 ![](dist_plots_volcano.png)![](dist_plots_trends.png)
 
-## T-Cell Hotspot Distance-Gene Analysis
-
-This workflow identifies genes whose expression changes with distance
-from intratumoral CD4/CD8 T-cell hotspots.
-
-### Step 1: Identify Hotspots
-
-Use DBSCAN to detect spatial clusters of T cells within the tumor:
-
-``` r
-
-hs <- define_tcell_hotspots(
-  seurat_obj,
-  celltype_col = "singleR.predicted.id.brcaAtlas",
-  tcell_labels = c("T Cells CD4+", "T Cells CD8+"),
-  polygon_col = "inside_polygon",
-  intratumoral_label = TRUE,
-  eps = 50,
-  min_pts = 10,
-  min_hotspot_size = 5
-)
-```
-
-### Step 2: Visualize Hotspots
-
-``` r
-
-plot_tcell_hotspots(seurat_obj, hs, celltype_col = "singleR.predicted.id.brcaAtlas")
-```
-
-![](plot_tcell_hotspots.png)
-
-### Step 3: Model Gene Expression vs Hotspot Distance
-
-``` r
-
-hs_res <- find_hotspot_distance_genes(
-  seurat_obj,
-  hotspot_result = hs,
-  assay = "Xenium",
-  focus = "perihotspot",
-  min_cells_expressing = 10,
-  n_distance_bins = 10,
-  max_dist_quantile = 0.95,
-  p_adj_threshold = 0.05,
-  exclude_tcell_labels = c("T Cells CD4+", "T Cells CD8+")
-)
-```
-
-The `exclude_tcell_labels` parameter removes T cells themselves from the
-analysis, focusing on how neighboring cells respond to T-cell proximity.
-
 ## Interpreting Results
 
-Both analysis functions return a list containing:
+[`find_distance_associated_genes()`](../reference/find_distance_associated_genes.md)
+returns a list containing:
 
 - **`results`** — Per-gene model summary with slopes, correlations, and
   adjusted p-values
@@ -138,8 +87,8 @@ Both analysis functions return a list containing:
 - **`metadata`** — Analysis parameters and cell counts
 
 Genes with significant positive slopes increase in expression away from
-the boundary/hotspot, while negative slopes indicate enrichment near the
-landmark.
+the boundary, while negative slopes indicate enrichment near the
+boundary.
 
 ## Next Steps
 

@@ -78,9 +78,9 @@
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
 <p>stGradient provides tools to model individual gene expression as a
-function of distance from tumor boundaries or T-cell hotspots. This
-identifies genes whose expression systematically increases or decreases
-with distance from key spatial landmarks.</p>
+function of distance from tumor boundaries. This identifies genes whose
+expression systematically increases or decreases with distance from the
+boundary.</p>
 </div>
 <div class="section level2">
 <h2 id="boundary-distance-gene-analysis">Boundary Distance-Gene Analysis<a class="anchor" aria-label="anchor" href="#boundary-distance-gene-analysis"></a>
@@ -168,58 +168,10 @@ extends to <code>max_distance</code>.</p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="t-cell-hotspot-distance-gene-analysis">T-Cell Hotspot Distance-Gene Analysis<a class="anchor" aria-label="anchor" href="#t-cell-hotspot-distance-gene-analysis"></a>
-</h2>
-<p>This workflow identifies genes whose expression changes with distance
-from intratumoral CD4/CD8 T-cell hotspots.</p>
-<div class="section level3">
-<h3 id="step-1-identify-hotspots">Step 1: Identify Hotspots<a class="anchor" aria-label="anchor" href="#step-1-identify-hotspots"></a>
-</h3>
-<p>Use DBSCAN to detect spatial clusters of T cells within the
-tumor:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">hs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/define_tcell_hotspots.html">define_tcell_hotspots</a></span><span class="op">(</span></span>
-<span>  <span class="va">seurat_obj</span>,</span>
-<span>  celltype_col <span class="op">=</span> <span class="st">"singleR.predicted.id.brcaAtlas"</span>,</span>
-<span>  tcell_labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"T Cells CD4+"</span>, <span class="st">"T Cells CD8+"</span><span class="op">)</span>,</span>
-<span>  polygon_col <span class="op">=</span> <span class="st">"inside_polygon"</span>,</span>
-<span>  intratumoral_label <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  eps <span class="op">=</span> <span class="fl">50</span>,</span>
-<span>  min_pts <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  min_hotspot_size <span class="op">=</span> <span class="fl">5</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="step-2-visualize-hotspots">Step 2: Visualize Hotspots<a class="anchor" aria-label="anchor" href="#step-2-visualize-hotspots"></a>
-</h3>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_tcell_hotspots.html">plot_tcell_hotspots</a></span><span class="op">(</span><span class="va">seurat_obj</span>, <span class="va">hs</span>, celltype_col <span class="op">=</span> <span class="st">"singleR.predicted.id.brcaAtlas"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="plot_tcell_hotspots.png"></p>
-</div>
-<div class="section level3">
-<h3 id="step-3-model-gene-expression-vs-hotspot-distance">Step 3: Model Gene Expression vs Hotspot Distance<a class="anchor" aria-label="anchor" href="#step-3-model-gene-expression-vs-hotspot-distance"></a>
-</h3>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">hs_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/find_hotspot_distance_genes.html">find_hotspot_distance_genes</a></span><span class="op">(</span></span>
-<span>  <span class="va">seurat_obj</span>,</span>
-<span>  hotspot_result <span class="op">=</span> <span class="va">hs</span>,</span>
-<span>  assay <span class="op">=</span> <span class="st">"Xenium"</span>,</span>
-<span>  focus <span class="op">=</span> <span class="st">"perihotspot"</span>,</span>
-<span>  min_cells_expressing <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  n_distance_bins <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  max_dist_quantile <span class="op">=</span> <span class="fl">0.95</span>,</span>
-<span>  p_adj_threshold <span class="op">=</span> <span class="fl">0.05</span>,</span>
-<span>  exclude_tcell_labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"T Cells CD4+"</span>, <span class="st">"T Cells CD8+"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>The <code>exclude_tcell_labels</code> parameter removes T cells
-themselves from the analysis, focusing on how neighboring cells respond
-to T-cell proximity.</p>
-</div>
-</div>
-<div class="section level2">
 <h2 id="interpreting-results">Interpreting Results<a class="anchor" aria-label="anchor" href="#interpreting-results"></a>
 </h2>
-<p>Both analysis functions return a list containing:</p>
+<p><code><a href="../reference/find_distance_associated_genes.html">find_distance_associated_genes()</a></code> returns a list
+containing:</p>
 <ul>
 <li>
 <strong><code>results</code></strong> — Per-gene model summary with
@@ -232,8 +184,8 @@ distance bin for trending genes</li>
 cell counts</li>
 </ul>
 <p>Genes with significant positive slopes increase in expression away
-from the boundary/hotspot, while negative slopes indicate enrichment
-near the landmark.</p>
+from the boundary, while negative slopes indicate enrichment near the
+boundary.</p>
 </div>
 <div class="section level2">
 <h2 id="next-steps">Next Steps<a class="anchor" aria-label="anchor" href="#next-steps"></a>

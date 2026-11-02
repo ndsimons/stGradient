@@ -64,14 +64,8 @@ Model gene expression as a function of spatial distance
 
 - [`find_distance_associated_genes()`](find_distance_associated_genes.md)
   : Find Distance-Associated Genes
-- [`find_hotspot_distance_genes()`](find_hotspot_distance_genes.md) :
-  Find Genes Associated With Distance From T Cell Hotspots
-- [`define_tcell_hotspots()`](define_tcell_hotspots.md) : Define
-  Intratumoral T Cell Hotspots
 - [`plot_distance_genes()`](plot_distance_genes.md) : Plot
   Distance-Associated Gene Results
-- [`plot_tcell_hotspots()`](plot_tcell_hotspots.md) : Plot T Cell
-  Hotspots on Spatial Coordinates
 
 ## Visualization
 
