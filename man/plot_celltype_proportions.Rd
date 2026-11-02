@@ -8,7 +8,8 @@ plot_celltype_proportions(
   celltype_contributions,
   top_n = 5,
   span = 0.3,
-  level = 0.95
+  level = 0.95,
+  ncol = NULL
 )
 }
 \arguments{
@@ -19,6 +20,9 @@ plot_celltype_proportions(
 \item{span}{Loess smoothing span}
 
 \item{level}{Confidence level for the loess ribbon}
+
+\item{ncol}{Number of facet columns. If \code{NULL} (default), chosen automatically
+by \code{ggplot2::facet_wrap()}.}
 }
 \value{
 ggplot object

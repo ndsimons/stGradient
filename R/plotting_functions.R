@@ -148,11 +148,13 @@ plot_celltype_heatmap <- function(celltype_contributions) {
 #' @param top_n Number of top cell types to show
 #' @param span Loess smoothing span
 #' @param level Confidence level for the loess ribbon
+#' @param ncol Number of facet columns. If `NULL` (default), chosen automatically
+#'   by `ggplot2::facet_wrap()`.
 #' @return ggplot object
 #' @importFrom magrittr %>%
 #' @export
 plot_celltype_proportions <- function(celltype_contributions, top_n = 5,
-                                      span = 0.3, level = 0.95) {
+                                      span = 0.3, level = 0.95, ncol = NULL) {
     total_by_distance <- celltype_contributions %>%
         dplyr::group_by(distance) %>%
         dplyr::summarise(total_contrib = sum(contribution), .groups = "drop")
@@ -183,7 +185,7 @@ plot_celltype_proportions <- function(celltype_contributions, top_n = 5,
                              color = "black", fill = "grey70", linewidth = 1) +
         ggplot2::geom_point(ggplot2::aes(color = region),
                             size = 1.8, alpha = 0.9, show.legend = FALSE) +
-        ggplot2::facet_wrap(~celltype, scales = "free_y") +
+        ggplot2::facet_wrap(~celltype, scales = "free_y", ncol = ncol) +
         ggplot2::scale_color_manual(values = c(Inside = "coral", Outside = "#A7C7E7")) +
         ggplot2::scale_x_continuous(limits = c(-max_dist, max_dist)) +
         ggplot2::labs(title = "Cell Type Proportions: Inside vs Outside",
