@@ -1,4 +1,6 @@
-# stGradient ![](reference/figures/stGradientLogo.png)
+# stGradient
+
+![](reference/figures/stGradientLogo.png)
 
 ### R toolkit for distance-based analyses of spatial transcriptomics data
 
