@@ -146,7 +146,7 @@ Focused ggplot2 PCF curve for one cell-type pair:
 
 ``` r
 
-plot_pcf_pair_gg(env_list[["TypeA_vs_TypeB"]])
+plot_pcf_pair_gg(env_list, "TypeA", "TypeB")
 ```
 
 ## Gene-Distance Plots

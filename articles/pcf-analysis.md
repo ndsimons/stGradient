@@ -100,7 +100,7 @@ For focused analysis of specific cell-type pairs:
 
 ``` r
 
-plot_pcf_pair_gg(env_list[["TypeA_vs_TypeB"]])
+plot_pcf_pair_gg(env_list, "TypeA", "TypeB")
 ```
 
 ![](pcfSinglePlot.png)
