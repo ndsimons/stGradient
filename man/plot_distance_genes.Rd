@@ -4,7 +4,12 @@
 \alias{plot_distance_genes}
 \title{Plot Distance-Associated Gene Results}
 \usage{
-plot_distance_genes(result_list, top_n = 12, sample_label = "")
+plot_distance_genes(
+  result_list,
+  top_n = 12,
+  sample_label = "",
+  max_distance = 200
+)
 }
 \arguments{
 \item{result_list}{Output list from `find_distance_associated_genes`.}
@@ -12,6 +17,9 @@ plot_distance_genes(result_list, top_n = 12, sample_label = "")
 \item{top_n}{Maximum number of significant genes shown in trend facets.}
 
 \item{sample_label}{Optional label for plot titles.}
+
+\item{max_distance}{Upper x-axis limit (distance from boundary) for the
+trends plot. Set to `NULL` to show the full distance range.}
 }
 \value{
 List with `volcano` and `trends` ggplot objects.

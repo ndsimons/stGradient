@@ -240,9 +240,17 @@ find_distance_associated_genes <- function(seurat_obj,
 #' @param result_list Output list from `find_distance_associated_genes`.
 #' @param top_n Maximum number of significant genes shown in trend facets.
 #' @param sample_label Optional label for plot titles.
+#' @param max_distance Upper x-axis limit (distance from boundary) for the
+#'   trends plot. Set to `NULL` to show the full distance range.
 #' @return List with `volcano` and `trends` ggplot objects.
 #' @export
-plot_distance_genes <- function(result_list, top_n = 12, sample_label = "") {
+plot_distance_genes <- function(result_list, top_n = 12, sample_label = "",
+                                max_distance = 200) {
+  if (!is.null(max_distance) &&
+      !(is.numeric(max_distance) && length(max_distance) == 1 &&
+        is.finite(max_distance) && max_distance > 0)) {
+    stop("`max_distance` must be a single positive number or NULL.", call. = FALSE)
+  }
   if (!requireNamespace("ggrepel", quietly = TRUE)) {
     stop("Package 'ggrepel' is required. Install with: install.packages('ggrepel')")
   }
@@ -306,6 +314,11 @@ plot_distance_genes <- function(result_list, top_n = 12, sample_label = "") {
         ) +
         ggplot2::theme_minimal() +
         ggplot2::theme(legend.position = "none")
+
+      if (!is.null(max_distance)) {
+        x_min <- min(0, plot_data$bin_midpoint, na.rm = TRUE)
+        p_trends <- p_trends + ggplot2::coord_cartesian(xlim = c(x_min, max_distance))
+      }
     }
   }
 
