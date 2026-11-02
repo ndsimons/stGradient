@@ -4,12 +4,21 @@
 \alias{plot_celltype_proportions}
 \title{Plot Cell Type Proportions}
 \usage{
-plot_celltype_proportions(celltype_contributions, top_n = 5)
+plot_celltype_proportions(
+  celltype_contributions,
+  top_n = 5,
+  span = 0.3,
+  level = 0.95
+)
 }
 \arguments{
 \item{celltype_contributions}{Data frame from calculate_distance_profile}
 
 \item{top_n}{Number of top cell types to show}
+
+\item{span}{Loess smoothing span}
+
+\item{level}{Confidence level for the loess ribbon}
 }
 \value{
 ggplot object
