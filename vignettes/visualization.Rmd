@@ -160,12 +160,6 @@ dist_plots$volcano
 dist_plots$trends
 ```
 
-### T-Cell Hotspot Overlay
-
-```{r hotspot-plot}
-plot_tcell_hotspots(seurat_obj, hs, celltype_col = "singleR.predicted.id.brcaAtlas")
-```
-
 ## Niche Plots
 
 ### Stacked Composition

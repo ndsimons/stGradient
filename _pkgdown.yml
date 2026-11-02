@@ -90,10 +90,7 @@ reference:
     desc: Model gene expression as a function of spatial distance
     contents:
       - find_distance_associated_genes
-      - find_hotspot_distance_genes
-      - define_tcell_hotspots
       - plot_distance_genes
-      - plot_tcell_hotspots
 
   - title: Visualization
     desc: QC plots, ROI composition, and distance profile visualization

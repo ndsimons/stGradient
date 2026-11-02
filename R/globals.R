@@ -10,6 +10,6 @@ if (getRversion() >= "2.15.1") {
     "niche", "niche_label", "wilcox_p", "perm_p", "p_value", "p_adj",
     "p_adj_lm", "mean_pCR", "mean_non_pCR", "perm_padj", "group",
     "mean_prop", "sem", "sig_label", "estimate", "std_error", "coef",
-    "direction", "gene", "bin_midpoint", "mean_expr", "hotspot_id"
+    "direction", "gene", "bin_midpoint", "mean_expr"
   ))
 }
