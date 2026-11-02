@@ -1,7 +1,8 @@
-# stGradient <img src="man/figures/stGradientLogo.png" align="right" width="305" height="352" />
+# stGradient
 
 <!-- badges: start -->
 <!-- badges: end -->
+<img src="man/figures/stGradientLogo.png" align="right" width="152" height="175" />
 
 ### R toolkit for distance-based analyses of spatial transcriptomics data
 
