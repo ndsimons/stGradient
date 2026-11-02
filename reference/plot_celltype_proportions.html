@@ -56,7 +56,8 @@
 <span>  <span class="va">celltype_contributions</span>,</span>
 <span>  top_n <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  span <span class="op">=</span> <span class="fl">0.3</span>,</span>
-<span>  level <span class="op">=</span> <span class="fl">0.95</span></span>
+<span>  level <span class="op">=</span> <span class="fl">0.95</span>,</span>
+<span>  ncol <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -78,6 +79,11 @@
 
 <dt id="arg-level">level<a class="anchor" aria-label="anchor" href="#arg-level"></a></dt>
 <dd><p>Confidence level for the loess ribbon</p></dd>
+
+
+<dt id="arg-ncol">ncol<a class="anchor" aria-label="anchor" href="#arg-ncol"></a></dt>
+<dd><p>Number of facet columns. If <code>NULL</code> (default), chosen automatically
+by <code><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">ggplot2::facet_wrap()</a></code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

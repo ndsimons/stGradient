@@ -9,7 +9,8 @@ plot_celltype_proportions(
   celltype_contributions,
   top_n = 5,
   span = 0.3,
-  level = 0.95
+  level = 0.95,
+  ncol = NULL
 )
 ```
 
@@ -30,6 +31,11 @@ plot_celltype_proportions(
 - level:
 
   Confidence level for the loess ribbon
+
+- ncol:
+
+  Number of facet columns. If `NULL` (default), chosen automatically by
+  [`ggplot2::facet_wrap()`](https://ggplot2.tidyverse.org/reference/facet_wrap.html).
 
 ## Value
 
