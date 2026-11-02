@@ -63,7 +63,15 @@ calculate_transcriptomic_distance <- function(inside_cells, outside_cells, seura
 #' @return Numeric value (mean |log2FC|)
 #' @export
 calculate_de_strength <- function(inside_cells, outside_cells, seurat_obj) {
-  temp_ident <- ifelse(colnames(seurat_obj) %in% inside_cells, "inside", "outside")
+  if (length(intersect(inside_cells, outside_cells)) > 0) {
+    stop("`inside_cells` and `outside_cells` must not overlap.")
+  }
+  
+  # Cells in neither group are labelled "excluded" so they don't enter the comparison
+  cell_ids <- colnames(seurat_obj)
+  temp_ident <- rep("excluded", length(cell_ids))
+  temp_ident[cell_ids %in% inside_cells] <- "inside"
+  temp_ident[cell_ids %in% outside_cells] <- "outside"
   seurat_obj$temp_group <- temp_ident
   
   Seurat::Idents(seurat_obj) <- "temp_group"
