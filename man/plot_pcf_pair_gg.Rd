@@ -4,45 +4,29 @@
 \alias{plot_pcf_pair_gg}
 \title{Plot a Single Outside-Polygon PCF Pair as a ggplot}
 \usage{
-plot_pcf_pair_gg(
-  seurat_obj,
-  polygons,
-  type1,
-  type2,
-  celltype_col = "singleR.predicted.id.brcaAtlas",
-  fov_name = "fov",
-  min_cells = 10,
-  nsim = 39,
-  bw = 10,
-  window_obj = NULL
-)
+plot_pcf_pair_gg(env_list, celltype1, celltype2)
 }
 \arguments{
-\item{seurat_obj}{Seurat object with spatial coordinates.}
+\item{env_list}{Named list of envelope objects returned by
+[plot_pcf_outside_pair_envelopes()].}
 
-\item{polygons}{sf polygon object representing tumor regions.}
+\item{celltype1}{First cell type label (character).}
 
-\item{type1}{First cell type label (character).}
-
-\item{type2}{Second cell type label (character).}
-
-\item{celltype_col}{Metadata column containing cell type labels.}
-
-\item{fov_name}{Field of view/image name passed to `Seurat::GetTissueCoordinates`.}
-
-\item{min_cells}{Minimum number of cells required per cell type.}
-
-\item{nsim}{Number of simulations for envelope bands.}
-
-\item{bw}{Bandwidth for PCF smoothing.}
-
-\item{window_obj}{Optional `spatstat.geom::owin` window.}
+\item{celltype2}{Second cell type label (character). If
+`"<celltype1> vs <celltype2>"` is not in `env_list`, the reversed pair is
+used, since unordered envelope lists contain only one direction.}
 }
 \value{
 A ggplot object with the observed g(r) curve and simulation envelope bands.
 }
 \description{
-Computes the pair correlation function (with simulation envelopes) for one
-requested cell-type pair outside the tumor polygons and returns a ggplot
-object suitable for embedding in R Markdown documents.
+Plots the pair correlation function (with simulation envelopes) for one
+cell-type pair from the list returned by [plot_pcf_outside_pair_envelopes()],
+as a ggplot object suitable for embedding in R Markdown documents.
+}
+\examples{
+\dontrun{
+env_list <- plot_pcf_outside_pair_envelopes(seurat_obj, auto_polygons)
+plot_pcf_pair_gg(env_list, "TypeA", "TypeB")
+}
 }

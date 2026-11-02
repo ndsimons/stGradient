@@ -101,7 +101,7 @@ This creates a multi-page PDF with one page per cell-type pair showing the obser
 For focused analysis of specific cell-type pairs:
 
 ```{r single-pair}
-plot_pcf_pair_gg(env_list[["TypeA_vs_TypeB"]])
+plot_pcf_pair_gg(env_list, "TypeA", "TypeB")
 ```
 ![](pcfSinglePlot.png)
 

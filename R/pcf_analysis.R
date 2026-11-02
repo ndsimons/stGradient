@@ -367,69 +367,56 @@ plot_pcf_outside_pair_envelopes <- function(seurat_obj,
 
 #' Plot a Single Outside-Polygon PCF Pair as a ggplot
 #'
-#' Computes the pair correlation function (with simulation envelopes) for one
-#' requested cell-type pair outside the tumor polygons and returns a ggplot
-#' object suitable for embedding in R Markdown documents.
+#' Plots the pair correlation function (with simulation envelopes) for one
+#' cell-type pair from the list returned by [plot_pcf_outside_pair_envelopes()],
+#' as a ggplot object suitable for embedding in R Markdown documents.
 #'
-#' @param seurat_obj Seurat object with spatial coordinates.
-#' @param polygons sf polygon object representing tumor regions.
-#' @param type1 First cell type label (character).
-#' @param type2 Second cell type label (character).
-#' @param celltype_col Metadata column containing cell type labels.
-#' @param fov_name Field of view/image name passed to `Seurat::GetTissueCoordinates`.
-#' @param min_cells Minimum number of cells required per cell type.
-#' @param nsim Number of simulations for envelope bands.
-#' @param bw Bandwidth for PCF smoothing.
-#' @param window_obj Optional `spatstat.geom::owin` window.
+#' @param env_list Named list of envelope objects returned by
+#'   [plot_pcf_outside_pair_envelopes()].
+#' @param celltype1 First cell type label (character).
+#' @param celltype2 Second cell type label (character). If
+#'   `"<celltype1> vs <celltype2>"` is not in `env_list`, the reversed pair is
+#'   used, since unordered envelope lists contain only one direction.
 #' @return A ggplot object with the observed g(r) curve and simulation envelope bands.
 #' @export
-plot_pcf_pair_gg <- function(seurat_obj,
-                             polygons,
-                             type1,
-                             type2,
-                             celltype_col = "singleR.predicted.id.brcaAtlas",
-                             fov_name = "fov",
-                             min_cells = 10,
-                             nsim = 39,
-                             bw = 10,
-                             window_obj = NULL) {
-  if (!requireNamespace("spatstat.explore", quietly = TRUE)) {
-    stop("Package 'spatstat.explore' is required. Install with: install.packages('spatstat.explore')")
+#'
+#' @examples
+#' \dontrun{
+#' env_list <- plot_pcf_outside_pair_envelopes(seurat_obj, auto_polygons)
+#' plot_pcf_pair_gg(env_list, "TypeA", "TypeB")
+#' }
+plot_pcf_pair_gg <- function(env_list, celltype1, celltype2) {
+  if (!is.list(env_list) || inherits(env_list, "envelope") || is.null(names(env_list))) {
+    stop("`env_list` must be the named list returned by plot_pcf_outside_pair_envelopes().",
+         call. = FALSE)
   }
 
-  prep <- build_outside_ppp(
-    seurat_obj = seurat_obj,
-    polygons = polygons,
-    celltype_col = celltype_col,
-    fov_name = fov_name,
-    min_cells = min_cells,
-    window_obj = window_obj
-  )
-
-  ppp_obj <- prep$ppp_obj
-  cell_types <- levels(spatstat.geom::marks(ppp_obj))
-
-  missing <- setdiff(c(type1, type2), cell_types)
-  if (length(missing) > 0) {
-    stop(
-      "The following cell types were not found (or had too few cells) outside the polygon: ",
-      paste(missing, collapse = ", "),
-      "\nAvailable types: ", paste(cell_types, collapse = ", ")
-    )
+  pair_name <- paste(celltype1, "vs", celltype2)
+  reversed_name <- paste(celltype2, "vs", celltype1)
+  if (pair_name %in% names(env_list)) {
+    pair <- c(celltype1, celltype2)
+  } else if (reversed_name %in% names(env_list)) {
+    pair_name <- reversed_name
+    pair <- c(celltype2, celltype1)
+  } else {
+    stop("Pair '", celltype1, " vs ", celltype2, "' not found in env_list. Available pairs:\n  ",
+         paste(names(env_list), collapse = "\n  "), call. = FALSE)
   }
 
-  env_obj <- spatstat.explore::envelope(
-    ppp_obj,
-    fun = spatstat.explore::pcfcross,
-    i = type1,
-    j = type2,
-    nsim = nsim,
-    bw = bw,
-    verbose = FALSE
-  )
+  env_obj <- env_list[[pair_name]]
+  if (is.null(env_obj)) {
+    stop("Envelope for '", pair_name, "' is NULL; it failed during ",
+         "plot_pcf_outside_pair_envelopes() (rerun with verbose = TRUE to see why).",
+         call. = FALSE)
+  }
 
+  nsim <- attr(env_obj, "einfo")$nsim
+  subtitle <- if (is.null(nsim)) {
+    "Outside-polygon PCF"
+  } else {
+    sprintf("Outside-polygon PCF  |  envelope from %d simulations", as.integer(nsim))
+  }
   env_df <- as.data.frame(env_obj)
-  pair_label <- paste0(type1, "  \u2194  ", type2)
 
   ggplot2::ggplot(env_df, ggplot2::aes(x = .data$r)) +
     ggplot2::geom_ribbon(
@@ -439,8 +426,8 @@ plot_pcf_pair_gg <- function(seurat_obj,
     ggplot2::geom_hline(yintercept = 1, linetype = "dashed", color = "grey50") +
     ggplot2::geom_line(ggplot2::aes(y = .data$obs), color = "steelblue", linewidth = 1) +
     ggplot2::labs(
-      title = pair_label,
-      subtitle = sprintf("Outside-polygon PCF  |  envelope from %d simulations", nsim),
+      title = paste0(pair[1], "  \u2194  ", pair[2]),
+      subtitle = subtitle,
       x = "Distance r (\u03bcm)",
       y = "g(r)"
     ) +

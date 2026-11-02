@@ -147,7 +147,7 @@ plot_pcf_outside_pair_envelopes(
 Focused ggplot2 PCF curve for one cell-type pair:
 
 ```{r pcf-single}
-plot_pcf_pair_gg(env_list[["TypeA_vs_TypeB"]])
+plot_pcf_pair_gg(env_list, "TypeA", "TypeB")
 ```
 
 ## Gene-Distance Plots
