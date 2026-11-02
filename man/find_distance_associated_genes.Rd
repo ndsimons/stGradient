@@ -17,7 +17,8 @@ find_distance_associated_genes(
 \arguments{
 \item{seurat_obj}{Seurat object with `dist_to_boundary` metadata.}
 
-\item{assay}{Assay name.}
+\item{assay}{Assay name. If its `data` layer is empty, `Seurat::NormalizeData()`
+is run with default settings on the analyzed cells.}
 
 \item{min_cells_expressing}{Minimum expressing cells for a gene to be tested.}
 

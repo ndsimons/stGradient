@@ -22,7 +22,8 @@ find_hotspot_distance_genes(
 
 \item{hotspot_result}{Output from `define_tcell_hotspots`.}
 
-\item{assay}{Assay name.}
+\item{assay}{Assay name. If its `data` layer is empty, `Seurat::NormalizeData()`
+is run with default settings on the analyzed cells.}
 
 \item{focus}{Region to analyze relative to hotspot: `perihotspot`,
 `intrahotspot`, or `both`.}

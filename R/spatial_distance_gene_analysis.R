@@ -41,13 +41,46 @@ compute_distance_from_boundary <- function(seurat_obj,
   seurat_obj
 }
 
+# Fetch the normalized "data" layer, running NormalizeData() if it is empty.
+get_data_layer <- function(obj, assay) {
+  if (!assay %in% names(obj@assays)) {
+    stop("Assay '", assay, "' not found. Available assays: ",
+         paste(names(obj@assays), collapse = ", "), call. = FALSE)
+  }
+  fetch <- function(o) suppressWarnings(tryCatch(
+    Seurat::GetAssayData(o, assay = assay, layer = "data"),
+    error = function(e) Seurat::GetAssayData(o, assay = assay, slot = "data")
+  ))
+  expr_mat <- fetch(obj)
+  if (nrow(expr_mat) == 0 || ncol(expr_mat) == 0) {
+    message("The 'data' layer of assay '", assay, "' is empty; running ",
+            "Seurat::NormalizeData() with default settings.")
+    obj <- Seurat::NormalizeData(obj, assay = assay, verbose = FALSE)
+    expr_mat <- fetch(obj)
+  }
+  expr_mat
+}
+
+# Warn why gene filtering left too few genes to test.
+warn_too_few_genes <- function(n_expressing, min_cells_expressing, n_cells, assay) {
+  max_expr <- if (length(n_expressing) > 0) max(n_expressing) else 0
+  warning(sprintf(paste0(
+    "Only %d gene(s) expressed in >= %d of %d cells in the '%s' assay 'data' layer ",
+    "(%d genes total; max cells expressing any gene: %d); returning NULL. ",
+    "Try lowering min_cells_expressing."),
+    sum(n_expressing >= min_cells_expressing), min_cells_expressing, n_cells, assay,
+    length(n_expressing), max_expr
+  ), call. = FALSE)
+}
+
 #' Find Distance-Associated Genes
 #'
 #' Fits per-gene linear models and Spearman correlations against distance from the
 #' tumor boundary.
 #'
 #' @param seurat_obj Seurat object with `dist_to_boundary` metadata.
-#' @param assay Assay name.
+#' @param assay Assay name. If its `data` layer is empty, `Seurat::NormalizeData()`
+#'   is run with default settings on the analyzed cells.
 #' @param min_cells_expressing Minimum expressing cells for a gene to be tested.
 #' @param n_distance_bins Number of bins for trend summaries.
 #' @param focus Region to analyze: `peritumoral`, `intratumoral`, or `both`.
@@ -68,15 +101,22 @@ find_distance_associated_genes <- function(seurat_obj,
     stop("Metadata column 'dist_to_boundary' not found. Run compute_distance_from_boundary() first.")
   }
 
+  dist_all <- seurat_obj$dist_to_boundary
+  has_dist <- !is.na(dist_all)
   if (focus == "peritumoral") {
-    cells_use <- colnames(seurat_obj)[seurat_obj$dist_to_boundary > 0]
+    cells_use <- colnames(seurat_obj)[has_dist & dist_all > 0]
   } else if (focus == "intratumoral") {
-    cells_use <- colnames(seurat_obj)[seurat_obj$dist_to_boundary <= 0]
+    cells_use <- colnames(seurat_obj)[has_dist & dist_all <= 0]
   } else {
-    cells_use <- colnames(seurat_obj)
+    cells_use <- colnames(seurat_obj)[has_dist]
   }
 
   if (length(cells_use) < 20) {
+    warning(sprintf(
+      "Only %d %s cells (need >= 20); returning NULL. dist_to_boundary: %d > 0, %d <= 0, %d NA.",
+      length(cells_use), focus, sum(dist_all > 0, na.rm = TRUE),
+      sum(dist_all <= 0, na.rm = TRUE), sum(!has_dist)
+    ), call. = FALSE)
     return(NULL)
   }
 
@@ -93,15 +133,13 @@ find_distance_associated_genes <- function(seurat_obj,
   sub_obj <- subset(sub_obj, cells = colnames(sub_obj)[keep])
   dist_values <- dist_values[keep]
 
-  expr_mat <- tryCatch(
-    Seurat::GetAssayData(sub_obj, assay = assay, layer = "data"),
-    error = function(e) Seurat::GetAssayData(sub_obj, assay = assay, slot = "data")
-  )
+  expr_mat <- get_data_layer(sub_obj, assay)
 
   n_expressing <- Matrix::rowSums(expr_mat > 0)
   genes_use <- names(n_expressing[n_expressing >= min_cells_expressing])
 
   if (length(genes_use) < 2) {
+    warn_too_few_genes(n_expressing, min_cells_expressing, ncol(expr_mat), assay)
     return(NULL)
   }
 
@@ -381,7 +419,8 @@ define_tcell_hotspots <- function(seurat_obj,
 #'
 #' @param seurat_obj Seurat object.
 #' @param hotspot_result Output from `define_tcell_hotspots`.
-#' @param assay Assay name.
+#' @param assay Assay name. If its `data` layer is empty, `Seurat::NormalizeData()`
+#'   is run with default settings on the analyzed cells.
 #' @param focus Region to analyze relative to hotspot: `perihotspot`,
 #'   `intrahotspot`, or `both`.
 #' @param min_cells_expressing Minimum expressing cells for a gene to be tested.
@@ -419,18 +458,27 @@ find_hotspot_distance_genes <- function(seurat_obj,
     seurat_obj <- subset(seurat_obj, cells = cells_keep)
   }
 
+  sdh <- seurat_obj$signed_dist_hotspot
+  has_dist <- !is.na(sdh)
   if (focus == "perihotspot") {
-    cells_use <- colnames(seurat_obj)[seurat_obj$signed_dist_hotspot > 0]
-    dist_vec <- seurat_obj$signed_dist_hotspot[seurat_obj$signed_dist_hotspot > 0]
+    sel <- has_dist & sdh > 0
+    cells_use <- colnames(seurat_obj)[sel]
+    dist_vec <- sdh[sel]
   } else if (focus == "intrahotspot") {
-    cells_use <- colnames(seurat_obj)[seurat_obj$signed_dist_hotspot <= 0]
-    dist_vec <- abs(seurat_obj$signed_dist_hotspot[seurat_obj$signed_dist_hotspot <= 0])
+    sel <- has_dist & sdh <= 0
+    cells_use <- colnames(seurat_obj)[sel]
+    dist_vec <- abs(sdh[sel])
   } else {
-    cells_use <- colnames(seurat_obj)
-    dist_vec <- seurat_obj$dist_to_hotspot
+    cells_use <- colnames(seurat_obj)[has_dist]
+    dist_vec <- seurat_obj$dist_to_hotspot[has_dist]
   }
 
   if (length(cells_use) < 20) {
+    warning(sprintf(
+      "Only %d %s cells (need >= 20); returning NULL. signed_dist_hotspot: %d > 0, %d <= 0, %d NA.",
+      length(cells_use), focus, sum(sdh > 0, na.rm = TRUE),
+      sum(sdh <= 0, na.rm = TRUE), sum(!has_dist)
+    ), call. = FALSE)
     return(NULL)
   }
 
@@ -443,14 +491,12 @@ find_hotspot_distance_genes <- function(seurat_obj,
   sub_obj <- subset(sub_obj, cells = colnames(sub_obj)[keep_idx])
   dist_vec <- dist_vec[keep_idx]
 
-  expr_mat <- tryCatch(
-    Seurat::GetAssayData(sub_obj, assay = assay, layer = "data"),
-    error = function(e) Seurat::GetAssayData(sub_obj, assay = assay, slot = "data")
-  )
+  expr_mat <- get_data_layer(sub_obj, assay)
 
   n_expressing <- Matrix::rowSums(expr_mat > 0)
   genes_use <- names(n_expressing[n_expressing >= min_cells_expressing])
   if (length(genes_use) < 2) {
+    warn_too_few_genes(n_expressing, min_cells_expressing, ncol(expr_mat), assay)
     return(NULL)
   }
   expr_mat <- expr_mat[genes_use, , drop = FALSE]
