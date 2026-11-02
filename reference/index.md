@@ -15,6 +15,8 @@ Define tumor regions via DBSCAN or interactive polygons
 
 - [`add_dbscan_polygons()`](add_dbscan_polygons.md) : Automatically
   detect cancer cell regions and create polygons
+- [`get_cancer_regions()`](get_cancer_regions.md) : Get Cancer Region
+  Polygons
 - [`optimize_dbscan_params()`](optimize_dbscan_params.md) : Optimize
   DBSCAN Parameters via Silhouette Score
 - [`add_polygon_membership()`](add_polygon_membership.md) : Add Polygon

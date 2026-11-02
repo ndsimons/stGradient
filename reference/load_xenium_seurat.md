@@ -1,8 +1,8 @@
 # Load Xenium Seurat Object with Stable Cell IDs
 
 Reads a Seurat object from RDS, enforces unique cell IDs, optionally
-computes cancer and ROI metadata columns, and stores coordinate mapping
-helpers.
+computes cancer and ROI metadata columns, and stores coordinates keyed
+by cell ID.
 
 ## Usage
 

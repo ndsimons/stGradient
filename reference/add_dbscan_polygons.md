@@ -1,8 +1,10 @@
 # Automatically detect cancer cell regions and create polygons
 
 Uses DBSCAN clustering on cancer cell coordinates to identify spatial
-regions, then creates concave hull polygons around each cluster. Adds
-polygons to the Seurat object's FOV.
+regions, then creates concave hull polygons around each cluster. Stores
+the polygons in \`seurat_obj@misc\$cancer_regions\[\[fov_name\]\]\`
+(retrieve them with \[get_cancer_regions()\]) and adds an
+\`inside_polygon\` metadata column.
 
 ## Usage
 
@@ -50,7 +52,8 @@ add_dbscan_polygons(
 
 ## Value
 
-Seurat object with cancer region polygons added to FOV
+Seurat object with cancer region polygons stored in \`@misc\` and
+\`inside_polygon\` metadata
 
 ## Examples
 

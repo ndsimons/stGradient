@@ -24,4 +24,6 @@ calculate_boundary_distances(seurat_obj, polygons, fov_name = "fov")
 
 ## Value
 
-Numeric vector of signed distances (negative = inside)
+Named numeric vector of signed distances (negative = inside), in
+\`colnames(seurat_obj)\` order; \`NA\` for cells without coordinates in
+the FOV.

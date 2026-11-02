@@ -25,6 +25,8 @@
 <url><loc>/reference/find_critical_distance.html</loc></url>
 <url><loc>/reference/find_distance_associated_genes.html</loc></url>
 <url><loc>/reference/find_hotspot_distance_genes.html</loc></url>
+<url><loc>/reference/get_cancer_regions.html</loc></url>
+<url><loc>/reference/get_cell_coords.html</loc></url>
 <url><loc>/reference/index.html</loc></url>
 <url><loc>/reference/launch_stGradient.html</loc></url>
 <url><loc>/reference/load_xenium_seurat.html</loc></url>

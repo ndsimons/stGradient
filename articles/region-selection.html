@@ -133,7 +133,7 @@ polygons.</p>
 <span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_dbscan_polygons.html">add_dbscan_polygons</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Access the polygon object</span></span>
-<span><span class="va">auto_polygons</span> <span class="op">&lt;-</span> <span class="va">seurat_obj</span><span class="op">@</span><span class="va">images</span><span class="op">[[</span><span class="st">"fov"</span><span class="op">]</span><span class="op">]</span><span class="op">@</span><span class="va">boundaries</span><span class="op">$</span><span class="va">cancer_regions</span></span></code></pre></div>
+<span><span class="va">auto_polygons</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_cancer_regions.html">get_cancer_regions</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="customizing-dbscan-parameters">Customizing DBSCAN Parameters<a class="anchor" aria-label="anchor" href="#customizing-dbscan-parameters"></a>
 </h3>

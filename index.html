@@ -135,7 +135,7 @@
 <span></span>
 <span><span class="co"># Automatically detect tumor regions with DBSCAN</span></span>
 <span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/add_dbscan_polygons.html">add_dbscan_polygons</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span></span>
-<span><span class="va">auto_polygons</span> <span class="op">&lt;-</span> <span class="va">seurat_obj</span><span class="op">@</span><span class="va">images</span><span class="op">[[</span><span class="st">"fov"</span><span class="op">]</span><span class="op">]</span><span class="op">@</span><span class="va">boundaries</span><span class="op">$</span><span class="va">cancer_regions</span></span>
+<span><span class="va">auto_polygons</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_cancer_regions.html">get_cancer_regions</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Calculate boundary distances</span></span>
 <span><span class="va">seurat_obj</span><span class="op">$</span><span class="va">boundary_distance</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculate_boundary_distances.html">calculate_boundary_distances</a></span><span class="op">(</span><span class="va">seurat_obj</span>, <span class="va">auto_polygons</span><span class="op">)</span></span>

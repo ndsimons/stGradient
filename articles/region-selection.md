@@ -47,7 +47,7 @@ library(stGradient)
 seurat_obj <- add_dbscan_polygons(seurat_obj)
 
 # Access the polygon object
-auto_polygons <- seurat_obj@images[["fov"]]@boundaries$cancer_regions
+auto_polygons <- get_cancer_regions(seurat_obj)
 ```
 
 ### Customizing DBSCAN Parameters
