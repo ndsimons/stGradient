@@ -58,6 +58,7 @@ launch_stGradient <- function() {
         coords$is_cancer <- seurat_obj$is_cancer
         
         rv$coords <- coords
+        rv$shapes <- NULL
         rv$data_loaded <- TRUE
         
         output$shapes <- shiny::renderPrint({
@@ -109,7 +110,7 @@ launch_stGradient <- function() {
     shiny::observe({
       event_data <- plotly::event_data("plotly_relayout", source = "plot")
       if (!is.null(event_data)) {
-        rv$shapes <- event_data
+        rv$shapes <- apply_relayout_shapes(shiny::isolate(rv$shapes), event_data)
       }
     })
     
@@ -141,19 +142,15 @@ launch_stGradient <- function() {
           return()
         }
         
-        if ("shapes" %in% names(shapes_data) && is.data.frame(shapes_data$shapes)) {
-          shapes_df <- shapes_data$shapes
-          
-          cat(paste("Found", nrow(shapes_df), "shape(s)\n\n"))
+        if (length(shapes_data) > 0) {
+          cat(paste("Found", length(shapes_data), "shape(s)\n\n"))
           
           polygons_list <- list()
           
-          for (i in 1:nrow(shapes_df)) {
-            path <- shapes_df$path[i]
-            
+          for (i in seq_along(shapes_data)) {
             cat(paste("Processing shape", i, "\n"))
             
-            coords_parsed <- parse_svg_path(path)
+            coords_parsed <- shape_to_coords(shapes_data[[i]])
             
             if (!is.null(coords_parsed)) {
               polygon_sf <- sf::st_polygon(list(as.matrix(coords_parsed))) %>%
@@ -179,11 +176,71 @@ launch_stGradient <- function() {
             cat("\nFailed to parse any polygons from the shape data.\n")
           }
         } else {
-          cat("No shapes found in the expected format.\n")
+          cat("No shapes found. Draw at least one shape before extracting.\n")
         }
       })
     })
   }
   
   shiny::shinyApp(ui, server)
+}
+
+# Merge a plotly_relayout event into the current list of shapes.
+# Drawing/erasing sends the full `shapes` array; editing sends keys like
+# "shapes[0].path" or "shapes[1].x0"; zoom/pan sends only axis keys.
+apply_relayout_shapes <- function(current, event_data) {
+  if (is.null(current)) current <- list()
+  keys <- names(event_data)
+  
+  if ("shapes" %in% keys) {
+    shapes <- event_data$shapes
+    if (is.data.frame(shapes)) {
+      current <- lapply(seq_len(nrow(shapes)), function(i) {
+        as.list(shapes[i, intersect(c("type", "path", "x0", "y0", "x1", "y1"),
+                                    names(shapes)), drop = FALSE])
+      })
+    } else if (length(shapes) == 0) {
+      current <- list()
+    } else {
+      current <- lapply(shapes, as.list)
+    }
+  }
+  
+  edit_pattern <- "^shapes\\[([0-9]+)\\]\\.(path|x0|y0|x1|y1)$"
+  for (key in grep(edit_pattern, keys, value = TRUE)) {
+    idx <- as.integer(sub(edit_pattern, "\\1", key)) + 1
+    field <- sub(edit_pattern, "\\2", key)
+    if (idx <= length(current)) {
+      current[[idx]][[field]] <- event_data[[key]]
+    }
+  }
+  
+  current
+}
+
+# Convert a plotly shape (path, rect or circle) to a closed coordinate matrix.
+shape_to_coords <- function(shape, n_circle_points = 64) {
+  type <- if (is.null(shape$type)) "path" else shape$type
+  
+  if (type == "path") {
+    if (is.null(shape$path) || is.na(shape$path)) return(NULL)
+    return(parse_svg_path(shape$path))
+  }
+  
+  bounds <- suppressWarnings(as.numeric(c(shape$x0, shape$y0, shape$x1, shape$y1)))
+  if (length(bounds) != 4 || any(is.na(bounds))) return(NULL)
+  x0 <- bounds[1]; y0 <- bounds[2]; x1 <- bounds[3]; y1 <- bounds[4]
+  
+  if (type == "rect") {
+    coords <- cbind(x = c(x0, x1, x1, x0, x0), y = c(y0, y0, y1, y1, y0))
+  } else if (type == "circle") {
+    theta <- seq(0, 2 * pi, length.out = n_circle_points + 1)
+    coords <- cbind(x = (x0 + x1) / 2 + abs(x1 - x0) / 2 * cos(theta),
+                    y = (y0 + y1) / 2 + abs(y1 - y0) / 2 * sin(theta))
+    coords[nrow(coords), ] <- coords[1, ]
+  } else {
+    return(NULL)
+  }
+  
+  coords
 }
