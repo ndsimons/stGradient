@@ -46,46 +46,37 @@ The resulting polygon object is an `sf` object that can be passed directly to do
 
 The `add_dbscan_polygons()` function automatically identifies ROIs by clustering cancer-labeled cells using the DBSCAN algorithm, then wrapping detected clusters in concave hull polygons.
 
-```{r dbscan-basic}
-library(stGradient)
+### Using Known DBSCAN Parameters
 
-# One-step: detect polygons and add membership to Seurat object
-seurat_obj <- add_dbscan_polygons(seurat_obj)
-
-# Access the polygon object
-auto_polygons <- get_cancer_regions(seurat_obj)
-```
-
-### Customizing DBSCAN Parameters
-
-You can tune the clustering behavior:
+If you already have starting values for `eps` and `minPts` (for example, from a previous sample on the same platform), pass them directly:
 
 ```{r dbscan-custom}
+library(stGradient)
+
 seurat_obj <- add_dbscan_polygons(
   seurat_obj,
   eps = 35,         # neighborhood radius (microns)
   minPts = 20,      # minimum cluster size
   concavity = 2     # concave hull tightness (lower = tighter)
 )
+
+# Access the polygon object
+auto_polygons <- get_cancer_regions(seurat_obj)
 ```
 
-### Visualizing Detected Polygons
+### Choosing Parameters Without Priors
 
-Use `plot_dbscan_polygons()` to inspect the results before proceeding:
+If you don't have prior values, you can optimize them from the data in three steps:
 
-```{r plot-dbscan}
-# Plot with polygons overlaid
-plot_dbscan_polygons(seurat_obj)
+1. **Grid search.** `optimize_dbscan_params()` runs DBSCAN on the cancer cells for every combination of `eps` and `minPts` in a grid and scores each combination by silhouette score, which measures how well separated the clusters are.
+2. **Filter out noisy settings.** DBSCAN labels a cancer cell as *noise* when it is not part of, or within `eps` of, a dense core (a cell with at least `minPts` neighbors within `eps`). Noise cells are not assigned to any cluster, so they fall outside every polygon. `noise_pct` is the fraction of cancer cells labeled noise. Settings with a high `noise_pct` miss many cancer cells, so only candidates with `noise_pct` below 15% are kept.
+3. **Compare coverage and purity.** For each remaining candidate, polygons are built and scored by `cancer_covered` (fraction of cancer cells that fall inside a polygon) and `purity` (fraction of cells inside polygons that are cancer). Larger `eps` or smaller `minPts` tends to raise coverage but pulls in more non-cancer cells, lowering purity. `fbeta` combines both into one score; with `b = 0.5`, purity counts more than coverage.
 
-# Get polygons without plotting (useful for pipelines)
-auto_polygons <- plot_dbscan_polygons(seurat_obj, plot = FALSE)
-```
-![](plot_dbscan_polygons.png)
+![](coverage_vs_purity.png)
 
 ### Optimizing DBSCAN Parameters
 
-If you're unsure which `eps` and `minPts` values work best for your data, use
-`optimize_dbscan_params()` to perform a grid search evaluated by silhouette score:
+Run the grid search with `optimize_dbscan_params()`. Results are sorted by silhouette score:
 
 ```{r optimize-dbscan}
 # Search over a grid of eps and minPts values
@@ -110,12 +101,7 @@ results <- optimize_dbscan_params(
 )
 ```
 
-#### Evaluating Polygon Coverage and Purity
-
-Silhouette score measures cluster separation, but not how well the resulting
-polygons capture cancer cells. For candidates with low noise, build the polygons
-and score each by `cancer_covered` (fraction of cancer cells inside a polygon)
-and `purity` (fraction of cells inside polygons that are cancer):
+Score the low-noise candidates by coverage and purity:
 
 ```{r optimize-dbscan-coverage}
 library(ggplot2)
@@ -161,8 +147,18 @@ ggplot(long, aes(factor(eps), factor(minPts), fill = value)) +
   theme(panel.grid = element_blank())
 ```
 
-`fbeta` combines both metrics into one score; with `b = 0.5`, purity counts
-more than coverage.
+### Visualizing Detected Polygons
+
+Use `plot_dbscan_polygons()` to inspect the results before proceeding:
+
+```{r plot-dbscan}
+# Plot with polygons overlaid
+plot_dbscan_polygons(seurat_obj)
+
+# Get polygons without plotting (useful for pipelines)
+auto_polygons <- plot_dbscan_polygons(seurat_obj, plot = FALSE)
+```
+![](plot_dbscan_polygons.png)
 
 ## Adding Polygon Membership
 

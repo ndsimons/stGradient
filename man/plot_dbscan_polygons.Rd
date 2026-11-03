@@ -29,7 +29,7 @@ plot_dbscan_polygons(
 
 \item{length_threshold}{Edge length threshold for concave hull (default: 0)}
 
-\item{sample_name}{Sample name for plot title}
+\item{sample_name}{Optional sample name prefixed to the plot titles}
 
 \item{plot}{Whether to generate visualization plots (default: TRUE)}
 

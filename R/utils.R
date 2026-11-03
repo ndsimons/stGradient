@@ -395,7 +395,7 @@ optimize_dbscan_params <- function(seurat_obj,
 #' @param minPts DBSCAN minimum points per cluster (default: 20)
 #' @param concavity Concave hull concavity parameter, lower = tighter fit (default: 2)
 #' @param length_threshold Edge length threshold for concave hull (default: 0)
-#' @param sample_name Sample name for plot title
+#' @param sample_name Optional sample name prefixed to the plot titles
 #' @param plot Whether to generate visualization plots (default: TRUE)
 #' @param ncol Number of plot columns: 2 places the plots side by side, 1 stacks
 #'   them vertically (default: 2)
@@ -498,9 +498,7 @@ plot_dbscan_polygons <- function(seurat_obj,
   
   # Visualize if requested
   if (plot) {
-    if (is.null(sample_name)) {
-      sample_name <- "Sample"
-    }
+    title_prefix <- if (is.null(sample_name)) "" else paste0(sample_name, ": ")
     
     p1 <- ggplot2::ggplot() +
       ggplot2::geom_sf(data = coords_sf, ggplot2::aes(color = is_cancer), size = 0.005, alpha = 0.5) +
@@ -512,7 +510,7 @@ plot_dbscan_polygons <- function(seurat_obj,
                      plot.background = ggplot2::element_rect(fill = "black"),
                      panel.grid = ggplot2::element_blank(),
                      plot.title = ggplot2::element_text(color = "white")) +
-      ggplot2::ggtitle(paste0(sample_name, ": Xenium cancer cell annotations"))
+      ggplot2::ggtitle(paste0(title_prefix, "cells of interest"))
     
     p2 <- ggplot2::ggplot() +
       ggplot2::geom_sf(data = coords_sf, ggplot2::aes(color = is_cancer), size = 0.005, alpha = 0.5) +
@@ -528,7 +526,7 @@ plot_dbscan_polygons <- function(seurat_obj,
                      plot.background = ggplot2::element_rect(fill = "black"),
                      panel.grid = ggplot2::element_blank(),
                      plot.title = ggplot2::element_text(color = "white")) +
-      ggplot2::ggtitle(paste0(sample_name, ": cluster polygons"))
+      ggplot2::ggtitle(paste0(title_prefix, "regions of interest (ROIs)"))
     
     print(cowplot::plot_grid(p1, p2, ncol = ncol))
   }
