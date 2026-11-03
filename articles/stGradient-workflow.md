@@ -101,14 +101,14 @@ pcf_summary <- calculate_pcf_outside_summary(
 )
 plot_pcf_outside_heatmap(pcf_summary, midpoint = 1)
 
-# Monte Carlo envelopes for every pair, written to a multi-page PDF
+# Monte Carlo envelopes for every pair, saved as one PNG per pair
 env_list <- plot_pcf_outside_pair_envelopes(
   seurat_obj = seurat_obj,
   polygons = auto_polygons,
   celltype_col = "singleR.predicted.id.brcaAtlas",
   min_cells = 10,
   nsim = 39,
-  file = "pcf_outside_all_pairs.pdf"
+  file = "pcf_outside_all_pairs.png"
 )
 plot_pcf_pair_gg(env_list, "TypeA", "TypeB")
 ```
