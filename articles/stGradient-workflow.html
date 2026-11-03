@@ -144,18 +144,89 @@ step, see the topic-specific vignettes linked below.</p>
 <p>See: <a href="visualization.html">Visualization</a></p>
 </div>
 <div class="section level2">
-<h2 id="advanced-analyses">Advanced Analyses<a class="anchor" aria-label="anchor" href="#advanced-analyses"></a>
+<h2 id="step-7-pcf-analysis">Step 7: PCF Analysis<a class="anchor" aria-label="anchor" href="#step-7-pcf-analysis"></a>
 </h2>
-<p>Once the basic distance profile is computed, you can extend into:</p>
-<ul>
-<li>
-<strong>PCF Analysis</strong> — characterize cell-type spatial
-co-occurrence outside the tumor (<a href="pcf-analysis.html">PCF
-Analysis</a>)</li>
-<li>
-<strong>Gene-Distance Modeling</strong> — identify genes whose
-expression varies with boundary distance (<a href="gene-distance-analysis.html">Gene-Distance Analysis</a>)</li>
-</ul>
+<p>Characterize cell-type spatial co-occurrence outside the tumor with
+pair correlation functions. Requires the <code>spatstat.geom</code> and
+<code>spatstat.explore</code> packages.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pcf_summary</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculate_pcf_outside_summary.html">calculate_pcf_outside_summary</a></span><span class="op">(</span></span>
+<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
+<span>  polygons <span class="op">=</span> <span class="va">auto_polygons</span>,</span>
+<span>  distance <span class="op">=</span> <span class="fl">200</span>,</span>
+<span>  min_cells <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  celltype_col <span class="op">=</span> <span class="st">"singleR.predicted.id.brcaAtlas"</span>,</span>
+<span>  include_self_pairs <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  ordered_pairs <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/plot_pcf_outside_heatmap.html">plot_pcf_outside_heatmap</a></span><span class="op">(</span><span class="va">pcf_summary</span>, midpoint <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Monte Carlo envelopes for every pair, written to a multi-page PDF</span></span>
+<span><span class="va">env_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_pcf_outside_pair_envelopes.html">plot_pcf_outside_pair_envelopes</a></span><span class="op">(</span></span>
+<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
+<span>  polygons <span class="op">=</span> <span class="va">auto_polygons</span>,</span>
+<span>  celltype_col <span class="op">=</span> <span class="st">"singleR.predicted.id.brcaAtlas"</span>,</span>
+<span>  min_cells <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  nsim <span class="op">=</span> <span class="fl">39</span>,</span>
+<span>  file <span class="op">=</span> <span class="st">"pcf_outside_all_pairs.pdf"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/plot_pcf_pair_gg.html">plot_pcf_pair_gg</a></span><span class="op">(</span><span class="va">env_list</span>, <span class="st">"TypeA"</span>, <span class="st">"TypeB"</span><span class="op">)</span></span></code></pre></div>
+<p>g(r) &gt; 1 indicates clustering and g(r) &lt; 1 indicates
+avoidance.</p>
+<p>See: <a href="pcf-analysis.html">PCF Analysis</a></p>
+</div>
+<div class="section level2">
+<h2 id="step-8-gene-distance-analysis">Step 8: Gene-Distance Analysis<a class="anchor" aria-label="anchor" href="#step-8-gene-distance-analysis"></a>
+</h2>
+<p>Identify genes whose expression varies with signed distance from the
+tumor boundary.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compute_distance_from_boundary.html">compute_distance_from_boundary</a></span><span class="op">(</span><span class="va">seurat_obj</span>, fov_name <span class="op">=</span> <span class="st">"fov"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">dist_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/find_distance_associated_genes.html">find_distance_associated_genes</a></span><span class="op">(</span></span>
+<span>  <span class="va">seurat_obj</span>,</span>
+<span>  assay <span class="op">=</span> <span class="st">"Xenium"</span>,</span>
+<span>  focus <span class="op">=</span> <span class="st">"peritumoral"</span>,</span>
+<span>  min_cells_expressing <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  n_distance_bins <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  max_distance <span class="op">=</span> <span class="fl">200</span>,</span>
+<span>  p_adj_threshold <span class="op">=</span> <span class="fl">0.05</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">dist_plots</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_distance_genes.html">plot_distance_genes</a></span><span class="op">(</span><span class="va">dist_res</span>, top_n <span class="op">=</span> <span class="fl">12</span>, sample_label <span class="op">=</span> <span class="st">"Sample_01"</span><span class="op">)</span></span>
+<span><span class="va">dist_plots</span><span class="op">$</span><span class="va">volcano</span></span>
+<span><span class="va">dist_plots</span><span class="op">$</span><span class="va">trends</span></span></code></pre></div>
+<p>See: <a href="gene-distance-analysis.html">Gene-Distance
+Analysis</a></p>
+</div>
+<div class="section level2">
+<h2 id="step-9-tls-analysis">Step 9: TLS Analysis<a class="anchor" aria-label="anchor" href="#step-9-tls-analysis"></a>
+</h2>
+<p>Call tertiary lymphoid structures from B and T cell aggregates, then
+validate them with a TLS gene signature score. Set the cell type column
+and labels to match your annotation.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/call_tls.html">call_tls</a></span><span class="op">(</span></span>
+<span>  <span class="va">seurat_obj</span>,</span>
+<span>  fov_name <span class="op">=</span> <span class="st">"fov"</span>,</span>
+<span>  celltype_col <span class="op">=</span> <span class="st">"first_type"</span>,</span>
+<span>  b_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"B_Cells"</span><span class="op">)</span>,</span>
+<span>  t_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD4+_T_Cells"</span>, <span class="st">"CD8+_T_Cells"</span><span class="op">)</span>,</span>
+<span>  dc_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"LAMP3+_DCs"</span>, <span class="st">"IRF7+_DCs"</span><span class="op">)</span>,</span>
+<span>  eps <span class="op">=</span> <span class="fl">50</span>,</span>
+<span>  minPts <span class="op">=</span> <span class="fl">20</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/get_tls_summary.html">get_tls_summary</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/plot_tls_map.html">plot_tls_map</a></span><span class="op">(</span><span class="va">seurat_obj</span>, celltype_col <span class="op">=</span> <span class="st">"first_type"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/plot_tls_composition.html">plot_tls_composition</a></span><span class="op">(</span><span class="va">seurat_obj</span>, celltype_col <span class="op">=</span> <span class="st">"first_type"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_tls_score.html">add_tls_score</a></span><span class="op">(</span><span class="va">seurat_obj</span>, assay <span class="op">=</span> <span class="st">"Xenium"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/plot_tls_score.html">plot_tls_score</a></span><span class="op">(</span><span class="va">seurat_obj</span>, highlight <span class="op">=</span> <span class="st">"outline"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">tls_stats</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarize_tls_score.html">summarize_tls_score</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span></span>
+<span><span class="va">tls_stats</span><span class="op">$</span><span class="va">by_tls</span></span>
+<span><span class="fu"><a href="../reference/plot_tls_score_comparison.html">plot_tls_score_comparison</a></span><span class="op">(</span><span class="va">seurat_obj</span>, type <span class="op">=</span> <span class="st">"violin"</span><span class="op">)</span></span></code></pre></div>
+<p>See: <a href="tls-analysis.html">TLS Analysis</a></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
