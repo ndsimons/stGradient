@@ -251,7 +251,8 @@ plot_pcf_outside_heatmap <- function(pcf_summary, midpoint = 1) {
 #' Plot Outside-Polygon PCF Envelopes for All Cell-Type Pairs
 #'
 #' Computes and plots envelope-based pair correlation curves for all requested cell-type
-#' pairs outside polygons. Plots can be sent to a multi-page PDF when `file` is provided.
+#' pairs outside polygons. When `file` is provided, each pair is saved as its own PNG
+#' named `<file stem>_<type1>_vs_<type2>.png`.
 #'
 #' @param seurat_obj Seurat object with spatial coordinates.
 #' @param polygons sf polygon object representing tumor regions.
@@ -263,7 +264,10 @@ plot_pcf_outside_heatmap <- function(pcf_summary, midpoint = 1) {
 #' @param nsim Number of simulations for envelopes.
 #' @param bw Bandwidth passed to `pcfcross` in envelope evaluation.
 #' @param window_obj Optional `spatstat.geom::owin` window.
-#' @param file Optional file path for a multi-page PDF output.
+#' @param file Optional base PNG file path (e.g. `"pcf_envelopes.png"`). One PNG is
+#'   written per pair, with the pair name appended to the file stem.
+#' @param width,height PNG size in inches.
+#' @param res PNG resolution in pixels per inch.
 #' @param verbose Logical; print progress messages.
 #' @return Named list of envelope objects.
 #' @export
@@ -278,6 +282,9 @@ plot_pcf_outside_pair_envelopes <- function(seurat_obj,
                                             bw = 10,
                                             window_obj = NULL,
                                             file = NULL,
+                                            width = 7,
+                                            height = 5,
+                                            res = 150,
                                             verbose = TRUE) {
   if (!requireNamespace("spatstat.explore", quietly = TRUE)) {
     stop("Package 'spatstat.explore' is required. Install with: install.packages('spatstat.explore')")
@@ -318,8 +325,12 @@ plot_pcf_outside_pair_envelopes <- function(seurat_obj,
   }
 
   if (!is.null(file)) {
-    grDevices::pdf(file = file, width = 7, height = 5)
-    on.exit(grDevices::dev.off(), add = TRUE)
+    file_stem <- sub("\\.png$", "", file, ignore.case = TRUE)
+    pair_files <- paste0(
+      file_stem, "_",
+      gsub("[^A-Za-z0-9.+-]+", "_", paste(pair_grid$type1, "vs", pair_grid$type2)),
+      ".png"
+    )
   }
 
   env_list <- vector("list", nrow(pair_grid))
@@ -332,6 +343,7 @@ plot_pcf_outside_pair_envelopes <- function(seurat_obj,
       message("Computing envelope: ", pair_name, " (", k, "/", nrow(pair_grid), ")")
     }
 
+    png_open <- FALSE
     env_list[[k]] <- tryCatch({
       env_obj <- spatstat.explore::envelope(
         ppp_obj,
@@ -342,6 +354,11 @@ plot_pcf_outside_pair_envelopes <- function(seurat_obj,
         bw = bw,
         verbose = FALSE
       )
+
+      if (!is.null(file)) {
+        grDevices::png(pair_files[k], width = width, height = height, units = "in", res = res)
+        png_open <- TRUE
+      }
 
       plot(
         env_obj,
@@ -358,7 +375,7 @@ plot_pcf_outside_pair_envelopes <- function(seurat_obj,
         message("Skipping ", pair_name, ": ", e$message)
       }
       NULL
-    })
+    }, finally = if (png_open) grDevices::dev.off())
   }
 
   names(env_list) <- paste(pair_grid$type1, "vs", pair_grid$type2)

@@ -50,7 +50,7 @@ rmarkdown::render("vignette_figures.Rmd",
                   params = list(rds_path = "/path/to/sample.rds"))
 ```
 
-Non-figure outputs (the multi-page PCF envelope PDF) go to
+Non-figure outputs (the per-pair PCF envelope PNGs) go to
 `r params$extra_dir`/, which is git-ignored.
 
 ## Setup
@@ -331,7 +331,7 @@ env_list <- plot_pcf_outside_pair_envelopes(
   ordered_pairs = FALSE,
   nsim = params$pcf_nsim,
   bw = 10,
-  file = file.path(extra_dir, "pcf_outside_all_pairs.pdf")
+  file = file.path(extra_dir, "pcf_outside_all_pairs.png")
 )
 length(env_list)
 ```

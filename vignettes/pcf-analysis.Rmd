@@ -89,12 +89,12 @@ env_list <- plot_pcf_outside_pair_envelopes(
   ordered_pairs = FALSE,
   nsim = 39,
   bw = 10,
-  file = "pcf_outside_all_pairs.pdf"
+  file = "pcf_outside_all_pairs.png"
 )
 ```
 
 
-This creates a multi-page PDF with one page per cell-type pair showing the observed PCF against simulation envelopes. Points outside the envelope represent statistically significant spatial patterns.
+This saves one PNG per cell-type pair (e.g. `pcf_outside_all_pairs_TypeA_vs_TypeB.png`) showing the observed PCF against simulation envelopes. Points outside the envelope represent statistically significant spatial patterns.
 
 ## Single-Pair PCF Plot
 

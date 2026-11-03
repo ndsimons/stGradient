@@ -138,7 +138,7 @@ plot_pcf_outside_pair_envelopes(
   polygons = auto_polygons,
   celltype_col = "singleR.predicted.id.brcaAtlas",
   nsim = 39,
-  file = "pcf_envelopes.pdf"
+  file = "pcf_envelopes.png"
 )
 ```
 

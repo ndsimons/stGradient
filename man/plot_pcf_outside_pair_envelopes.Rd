@@ -16,6 +16,9 @@ plot_pcf_outside_pair_envelopes(
   bw = 10,
   window_obj = NULL,
   file = NULL,
+  width = 7,
+  height = 5,
+  res = 150,
   verbose = TRUE
 )
 }
@@ -40,7 +43,12 @@ plot_pcf_outside_pair_envelopes(
 
 \item{window_obj}{Optional `spatstat.geom::owin` window.}
 
-\item{file}{Optional file path for a multi-page PDF output.}
+\item{file}{Optional base PNG file path (e.g. `"pcf_envelopes.png"`). One PNG is
+written per pair, with the pair name appended to the file stem.}
+
+\item{width, height}{PNG size in inches.}
+
+\item{res}{PNG resolution in pixels per inch.}
 
 \item{verbose}{Logical; print progress messages.}
 }
@@ -49,5 +57,6 @@ Named list of envelope objects.
 }
 \description{
 Computes and plots envelope-based pair correlation curves for all requested cell-type
-pairs outside polygons. Plots can be sent to a multi-page PDF when `file` is provided.
+pairs outside polygons. When `file` is provided, each pair is saved as its own PNG
+named `<file stem>_<type1>_vs_<type2>.png`.
 }
