@@ -8,11 +8,13 @@
 <url><loc>/articles/pcf-analysis.html</loc></url>
 <url><loc>/articles/region-selection.html</loc></url>
 <url><loc>/articles/stGradient-workflow.html</loc></url>
+<url><loc>/articles/tls-analysis.html</loc></url>
 <url><loc>/articles/visualization.html</loc></url>
 <url><loc>/authors.html</loc></url>
 <url><loc>/index.html</loc></url>
 <url><loc>/reference/add_dbscan_polygons.html</loc></url>
 <url><loc>/reference/add_polygon_membership.html</loc></url>
+<url><loc>/reference/add_tls_score.html</loc></url>
 <url><loc>/reference/build_outside_ppp.html</loc></url>
 <url><loc>/reference/calculate_boundary_distances.html</loc></url>
 <url><loc>/reference/calculate_composition_difference.html</loc></url>
@@ -20,12 +22,14 @@
 <url><loc>/reference/calculate_distance_profile.html</loc></url>
 <url><loc>/reference/calculate_pcf_outside_summary.html</loc></url>
 <url><loc>/reference/calculate_transcriptomic_distance.html</loc></url>
+<url><loc>/reference/call_tls.html</loc></url>
 <url><loc>/reference/celltype_palette.html</loc></url>
 <url><loc>/reference/compute_distance_from_boundary.html</loc></url>
 <url><loc>/reference/find_critical_distance.html</loc></url>
 <url><loc>/reference/find_distance_associated_genes.html</loc></url>
 <url><loc>/reference/get_cancer_regions.html</loc></url>
 <url><loc>/reference/get_cell_coords.html</loc></url>
+<url><loc>/reference/get_tls_summary.html</loc></url>
 <url><loc>/reference/index.html</loc></url>
 <url><loc>/reference/launch_stGradient.html</loc></url>
 <url><loc>/reference/load_xenium_seurat.html</loc></url>
@@ -43,6 +47,12 @@
 <url><loc>/reference/plot_roi_celltype_dist.html</loc></url>
 <url><loc>/reference/plot_roi_inout_celltype_dodge.html</loc></url>
 <url><loc>/reference/plot_roi_inout_celltype_stack.html</loc></url>
+<url><loc>/reference/plot_tls_composition.html</loc></url>
+<url><loc>/reference/plot_tls_map.html</loc></url>
+<url><loc>/reference/plot_tls_score.html</loc></url>
+<url><loc>/reference/plot_tls_score_comparison.html</loc></url>
 <url><loc>/reference/qc_plot_xenium.html</loc></url>
+<url><loc>/reference/summarize_tls_score.html</loc></url>
+<url><loc>/reference/tls_signature_genes.html</loc></url>
 </urlset>
 

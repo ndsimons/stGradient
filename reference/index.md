@@ -67,6 +67,25 @@ Model gene expression as a function of spatial distance
 - [`plot_distance_genes()`](plot_distance_genes.md) : Plot
   Distance-Associated Gene Results
 
+## TLS Analysis
+
+Detect tertiary lymphoid structures and score a TLS gene signature
+
+- [`call_tls()`](call_tls.md) : Call Tertiary Lymphoid Structures (TLS)
+- [`get_tls_summary()`](get_tls_summary.md) : Get TLS Aggregate Summary
+- [`tls_signature_genes()`](tls_signature_genes.md) : Default TLS
+  Signature Genes
+- [`add_tls_score()`](add_tls_score.md) : Add a TLS Signature Score
+- [`summarize_tls_score()`](summarize_tls_score.md) : Summarize TLS
+  Signature Scores
+- [`plot_tls_map()`](plot_tls_map.md) : Plot Called TLS on the Tissue
+- [`plot_tls_composition()`](plot_tls_composition.md) : Plot TLS
+  Cellular Composition
+- [`plot_tls_score()`](plot_tls_score.md) : Plot TLS Signature Score
+  Over Space
+- [`plot_tls_score_comparison()`](plot_tls_score_comparison.md) :
+  Compare TLS Signature Score In vs. Outside TLS
+
 ## Visualization
 
 QC plots, ROI composition, and distance profile visualization

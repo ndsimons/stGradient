@@ -11,6 +11,7 @@
 - [Distance Metrics](distance-metrics.md):
 - [PCF Analysis](pcf-analysis.md):
 - [Gene-Distance Analysis](gene-distance-analysis.md):
+- [TLS Analysis](tls-analysis.md):
 
 ### Visualization
 
