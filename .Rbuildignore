@@ -1,2 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^vignette_figures\.Rmd$
+^vignette_figures\.html$
+^vignette_figures_files$
+^vignette_figures_output$

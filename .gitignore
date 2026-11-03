@@ -5,3 +5,6 @@ docs
 .Rproj.user
 .Rhistory
 .RData
+vignette_figures.html
+vignette_figures_files/
+vignette_figures_output/

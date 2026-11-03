@@ -88,9 +88,87 @@ plot_celltype_proportions(results$celltype_contributions, top_n = 5)
 
 See: [Visualization](visualization.html)
 
-## Advanced Analyses
+## Step 7: PCF Analysis
 
-Once the basic distance profile is computed, you can extend into:
+Characterize cell-type spatial co-occurrence outside the tumor with pair correlation functions. Requires the `spatstat.geom` and `spatstat.explore` packages.
 
-- **PCF Analysis** — characterize cell-type spatial co-occurrence outside the tumor ([PCF Analysis](pcf-analysis.html))
-- **Gene-Distance Modeling** — identify genes whose expression varies with boundary distance ([Gene-Distance Analysis](gene-distance-analysis.html))
+```{r pcf}
+pcf_summary <- calculate_pcf_outside_summary(
+  seurat_obj = seurat_obj,
+  polygons = auto_polygons,
+  distance = 200,
+  min_cells = 10,
+  celltype_col = "singleR.predicted.id.brcaAtlas",
+  include_self_pairs = TRUE,
+  ordered_pairs = FALSE
+)
+plot_pcf_outside_heatmap(pcf_summary, midpoint = 1)
+
+# Monte Carlo envelopes for every pair, written to a multi-page PDF
+env_list <- plot_pcf_outside_pair_envelopes(
+  seurat_obj = seurat_obj,
+  polygons = auto_polygons,
+  celltype_col = "singleR.predicted.id.brcaAtlas",
+  min_cells = 10,
+  nsim = 39,
+  file = "pcf_outside_all_pairs.pdf"
+)
+plot_pcf_pair_gg(env_list, "TypeA", "TypeB")
+```
+
+g(r) > 1 indicates clustering and g(r) < 1 indicates avoidance.
+
+See: [PCF Analysis](pcf-analysis.html)
+
+## Step 8: Gene-Distance Analysis
+
+Identify genes whose expression varies with signed distance from the tumor boundary.
+
+```{r gene-distance}
+seurat_obj <- compute_distance_from_boundary(seurat_obj, fov_name = "fov")
+
+dist_res <- find_distance_associated_genes(
+  seurat_obj,
+  assay = "Xenium",
+  focus = "peritumoral",
+  min_cells_expressing = 10,
+  n_distance_bins = 10,
+  max_distance = 200,
+  p_adj_threshold = 0.05
+)
+
+dist_plots <- plot_distance_genes(dist_res, top_n = 12, sample_label = "Sample_01")
+dist_plots$volcano
+dist_plots$trends
+```
+
+See: [Gene-Distance Analysis](gene-distance-analysis.html)
+
+## Step 9: TLS Analysis
+
+Call tertiary lymphoid structures from B and T cell aggregates, then validate them with a TLS gene signature score. Set the cell type column and labels to match your annotation.
+
+```{r tls}
+seurat_obj <- call_tls(
+  seurat_obj,
+  fov_name = "fov",
+  celltype_col = "first_type",
+  b_types = c("B_Cells"),
+  t_types = c("CD4+_T_Cells", "CD8+_T_Cells"),
+  dc_types = c("LAMP3+_DCs", "IRF7+_DCs"),
+  eps = 50,
+  minPts = 20
+)
+get_tls_summary(seurat_obj)
+plot_tls_map(seurat_obj, celltype_col = "first_type")
+plot_tls_composition(seurat_obj, celltype_col = "first_type")
+
+seurat_obj <- add_tls_score(seurat_obj, assay = "Xenium")
+plot_tls_score(seurat_obj, highlight = "outline")
+
+tls_stats <- summarize_tls_score(seurat_obj)
+tls_stats$by_tls
+plot_tls_score_comparison(seurat_obj, type = "violin")
+```
+
+See: [TLS Analysis](tls-analysis.html)

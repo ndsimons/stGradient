@@ -1,0 +1,460 @@
+---
+title: "stGradient: Regenerate Vignette Figures"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+params:
+  rds_path: "path/to/sample_seuratObject.rds"
+  fov_name: "fov"
+  celltype_col: "singleR.predicted.id.brcaAtlas"
+  cancer_labels: !r c("Cancer LumA SC", "Cancer LumB SC", "Cancer Her2 SC")
+  group_by: "singleR.predicted.id.brcaAtlas"
+  sample_label: "Sample_01"
+  assay: "Xenium"
+  fig_dir: "vignettes"
+  extra_dir: "vignette_figures_output"
+  load_all: true
+  dbscan_eps: 35
+  dbscan_minPts: 20
+  use_optimized_dbscan: false
+  dbscan_max_sample: 10000
+  pcf_distance: 200
+  pcf_nsim: 39
+  pcf_pair: !r NULL
+  run_tls: true
+  tls_celltype_col: "first_type"
+  tls_b_types: !r c("B_Cells")
+  tls_t_types: !r c("CD4+_T_Cells", "CD8+_T_Cells")
+  tls_dc_types: !r c("LAMP3+_DCs", "IRF7+_DCs")
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 9,
+  fig.height = 6
+)
+```
+
+This document runs the stGradient workflow exactly as laid out in the package
+vignettes and writes every figure the vignettes embed to `r params$fig_dir`/,
+overwriting the existing PNGs. Render it from the repository root, then commit
+the updated PNGs; the pkgdown GitHub Action rebuilds the site on push.
+
+```r
+rmarkdown::render("vignette_figures.Rmd",
+                  params = list(rds_path = "/path/to/sample.rds"))
+```
+
+Non-figure outputs (the multi-page PCF envelope PDF) go to
+`r params$extra_dir`/, which is git-ignored.
+
+## Setup
+
+```{r packages}
+if (isTRUE(params$load_all) && requireNamespace("pkgload", quietly = TRUE)) {
+  pkgload::load_all(".", quiet = TRUE)
+} else {
+  library(stGradient)
+}
+library(ggplot2)
+library(tidyr)
+
+fig_dir <- params$fig_dir
+extra_dir <- params$extra_dir
+dir.create(fig_dir, showWarnings = FALSE, recursive = TRUE)
+dir.create(extra_dir, showWarnings = FALSE, recursive = TRUE)
+
+# Save a ggplot/patchwork/cowplot object to fig_dir and show it in the report
+save_fig <- function(plot, file, width, height, dpi = 150) {
+  ggplot2::ggsave(file.path(fig_dir, file), plot,
+                  width = width, height = height, dpi = dpi, bg = "white")
+  print(plot)
+  invisible(plot)
+}
+
+# For functions that draw directly to the device instead of returning a plot
+save_device <- function(file, width, height, expr, res = 150, bg = "white") {
+  path <- file.path(fig_dir, file)
+  grDevices::png(path, width = width, height = height, units = "in", res = res, bg = bg)
+  out <- tryCatch(force(expr), finally = grDevices::dev.off())
+  print(knitr::include_graphics(path))
+  invisible(out)
+}
+```
+
+## Loading & Setup
+
+```{r load-data}
+seurat_obj <- load_xenium_seurat(
+  rds_path = params$rds_path,
+  celltype_col = params$celltype_col,
+  cancer_labels = params$cancer_labels
+)
+seurat_obj
+table(seurat_obj$is_cancer)
+```
+
+## Region Selection
+
+### Optimizing DBSCAN Parameters
+
+```{r optimize-dbscan}
+# max_sample caps the silhouette distance matrix (n^2 memory) for large samples
+dbscan_results <- optimize_dbscan_params(seurat_obj, fov_name = params$fov_name,
+                                         max_sample = params$dbscan_max_sample)
+head(dbscan_results)
+```
+
+#### Evaluating Polygon Coverage and Purity
+
+```{r optimize-dbscan-coverage}
+eval_polys <- function(obj, eps, minPts, fov = params$fov_name) {
+  polys <- plot_dbscan_polygons(obj, fov = fov, eps = eps, minPts = minPts, plot = FALSE)
+  if (is.null(polys)) return(NULL)
+  coords <- Seurat::GetTissueCoordinates(obj, image = fov)
+  coords$is_cancer <- as.logical(obj$is_cancer)
+  pts    <- sf::st_as_sf(coords, coords = c("x", "y"))
+  region <- sf::st_union(sf::st_make_valid(polys))
+  inside <- lengths(sf::st_intersects(pts, region)) > 0
+  data.frame(eps = eps, minPts = minPts, n_regions = nrow(polys),
+             cancer_covered = mean(inside[coords$is_cancer]),
+             purity         = mean(coords$is_cancer[inside]))
+}
+
+cand <- subset(dbscan_results, noise_pct < 0.15)[, c("eps", "minPts")]
+scores <- do.call(rbind, Map(eval_polys, list(seurat_obj), cand$eps, cand$minPts))
+
+if (!is.null(scores) && nrow(scores) > 0) {
+  scores <- scores[order(-scores$cancer_covered, -scores$purity), ]
+  scores$label <- paste0(scores$eps, "/", scores$minPts)
+  b <- 0.5
+  scores$fbeta <- with(scores, (1 + b^2) * purity * cancer_covered /
+                         (b^2 * purity + cancer_covered))
+  print(head(scores, 10))
+
+  long <- pivot_longer(scores, c(cancer_covered, purity),
+                       names_to = "metric", values_to = "value")
+
+  p_cov <- ggplot(long, aes(factor(eps), factor(minPts), fill = value)) +
+    geom_tile(colour = "white") +
+    geom_text(aes(label = sprintf("%.2f", value)), size = 2.8) +
+    facet_wrap(~ metric, ncol = 1) +
+    scale_fill_viridis_c(labels = scales::percent) +
+    labs(x = "eps", y = "minPts", fill = NULL) +
+    theme_minimal() +
+    theme(panel.grid = element_blank())
+
+  save_fig(p_cov, "dbscan_coverage_purity.png", width = 8, height = 7)
+} else {
+  message("No DBSCAN candidates with noise_pct < 0.15; skipping coverage/purity plot.")
+}
+```
+
+### DBSCAN-Based Polygon Detection
+
+```{r dbscan}
+if (isTRUE(params$use_optimized_dbscan)) {
+  dbscan_eps <- dbscan_results$eps[1]
+  dbscan_minPts <- dbscan_results$minPts[1]
+} else {
+  dbscan_eps <- params$dbscan_eps
+  dbscan_minPts <- params$dbscan_minPts
+}
+cat("Using eps =", dbscan_eps, "and minPts =", dbscan_minPts, "\n")
+
+seurat_obj <- add_dbscan_polygons(seurat_obj, fov_name = params$fov_name,
+                                  eps = dbscan_eps, minPts = dbscan_minPts)
+auto_polygons <- get_cancer_regions(seurat_obj, fov_name = params$fov_name)
+auto_polygons
+```
+
+```{r plot-dbscan}
+save_device("plot_dbscan_polygons.png", width = 9.8, height = 5.8, bg = "black",
+            plot_dbscan_polygons(seurat_obj, fov = params$fov_name,
+                                 eps = dbscan_eps, minPts = dbscan_minPts,
+                                 sample_name = params$sample_label))
+```
+
+### Adding Polygon Membership
+
+```{r membership}
+seurat_obj <- add_polygon_membership(seurat_obj, auto_polygons, fov_name = params$fov_name)
+table(seurat_obj$inside_polygon)
+```
+
+### QC Visualization
+
+```{r qc}
+qc_out <- qc_plot_xenium(
+  obj = seurat_obj,
+  roi_col = "inside_polygon",
+  celltype_col = params$celltype_col,
+  show = "both",
+  zoom = TRUE,
+  zoom_pad = 0.05,
+  grey_outside_roi = TRUE
+)
+
+save_fig(qc_out$p, "qc_out.png", width = 11, height = 5.9)
+```
+
+### ROI Composition Plots
+
+```{r roi-dist}
+p_roi_dist <- plot_roi_celltype_dist(
+  df = qc_out$df,
+  roi_col = "inside_polygon",
+  celltype_col = params$celltype_col,
+  metric = "proportion"
+)
+save_fig(p_roi_dist, "plot_roi_celltype_dist.png", width = 6.3, height = 3.8)
+```
+
+```{r roi-stack}
+p_roi_stack <- plot_roi_inout_celltype_stack(
+  df = qc_out$df,
+  roi_col = "inside_polygon",
+  celltype_col = params$celltype_col
+)
+save_fig(p_roi_stack, "plot_roi_celltype_stack.png", width = 6.8, height = 4.8)
+```
+
+```{r roi-dodge}
+p_roi_dodge <- plot_roi_inout_celltype_dodge(
+  df = qc_out$df,
+  roi_col = "inside_polygon",
+  celltype_col = params$celltype_col,
+  metric = "count",
+  top_n = 10
+)
+save_fig(p_roi_dodge, "plot_roi_inout_celltype_dodge.png", width = 6.8, height = 4)
+```
+
+## Distance Metrics
+
+### Boundary Distances
+
+```{r boundary-dist}
+seurat_obj$boundary_distance <- calculate_boundary_distances(
+  seurat_obj, auto_polygons, fov_name = params$fov_name
+)
+summary(seurat_obj$boundary_distance)
+```
+
+### Distance Profile Analysis
+
+```{r profile}
+results_all <- calculate_distance_profile(
+  seurat_obj = seurat_obj,
+  distance_thresholds = seq(10, 200, by = 10),
+  metric = "all",
+  group_by = params$group_by,
+  inside_mode = "all"
+)
+results_dist <- calculate_distance_profile(
+  seurat_obj = seurat_obj,
+  distance_thresholds = seq(10, 200, by = 10),
+  metric = "all",
+  group_by = params$group_by,
+  inside_mode = "distance"
+)
+
+distance_profile <- results_all$profile
+celltype_contributions <- results_all$celltype_contributions
+combined <- rbind(results_all$profile, results_dist$profile)
+head(combined)
+```
+
+### Critical Distances
+
+```{r critical}
+critical <- find_critical_distance(distance_profile, "transcriptomic_distance")
+cat("Maximum separation at:", critical$max_distance, "μm\n")
+cat("Plateau begins at:", critical$plateau_distance, "μm\n")
+```
+
+### Visualization
+
+```{r dist-comparison}
+save_fig(plot_distance_comparison(combined), "plot_distance_comparison.png",
+         width = 6.8, height = 4.8)
+```
+
+```{r all-metrics}
+save_fig(plot_all_metrics(combined), "plot_all_metrics.png", width = 6.8, height = 4.8)
+```
+
+```{r heatmap}
+save_fig(plot_celltype_heatmap(celltype_contributions), "plot_celltype_heatmap.png",
+         width = 6.3, height = 4)
+```
+
+```{r proportions}
+save_fig(plot_celltype_proportions(celltype_contributions, top_n = 5),
+         "plot_celltype_proportions.png", width = 6.8, height = 4.8)
+```
+
+## PCF Analysis
+
+```{r pcf-summary}
+pcf_summary <- calculate_pcf_outside_summary(
+  seurat_obj = seurat_obj,
+  polygons = auto_polygons,
+  distance = params$pcf_distance,
+  min_cells = 10,
+  celltype_col = params$celltype_col,
+  fov_name = params$fov_name,
+  include_self_pairs = TRUE,
+  ordered_pairs = FALSE
+)
+head(pcf_summary[order(-pcf_summary$g_value), ])
+```
+
+```{r pcf-heatmap}
+save_fig(plot_pcf_outside_heatmap(pcf_summary, midpoint = 1),
+         "plot_pcf_outside_heatmap.png", width = 5.8, height = 4.9)
+```
+
+```{r pcf-envelopes}
+env_list <- plot_pcf_outside_pair_envelopes(
+  seurat_obj = seurat_obj,
+  polygons = auto_polygons,
+  celltype_col = params$celltype_col,
+  fov_name = params$fov_name,
+  min_cells = 10,
+  include_self_pairs = FALSE,
+  ordered_pairs = FALSE,
+  nsim = params$pcf_nsim,
+  bw = 10,
+  file = file.path(extra_dir, "pcf_outside_all_pairs.pdf")
+)
+length(env_list)
+```
+
+```{r pcf-single}
+# Use the requested pair, otherwise the strongest non-self pair from the summary
+if (!is.null(params$pcf_pair)) {
+  pcf_pair <- params$pcf_pair
+} else {
+  cross <- pcf_summary[pcf_summary$type1 != pcf_summary$type2 &
+                         is.finite(pcf_summary$g_value), ]
+  cross <- cross[order(-cross$g_value), ]
+  ok <- paste(cross$type1, "vs", cross$type2) %in% names(Filter(Negate(is.null), env_list)) |
+        paste(cross$type2, "vs", cross$type1) %in% names(Filter(Negate(is.null), env_list))
+  pcf_pair <- unlist(cross[which(ok)[1], c("type1", "type2")])
+}
+cat("Single-pair PCF:", pcf_pair[1], "vs", pcf_pair[2], "\n")
+
+save_fig(plot_pcf_pair_gg(env_list, pcf_pair[1], pcf_pair[2]),
+         "pcfSinglePlot.png", width = 7, height = 5, dpi = 300)
+```
+
+## Gene-Distance Analysis
+
+```{r compute-dist}
+seurat_obj <- compute_distance_from_boundary(seurat_obj, fov_name = params$fov_name)
+summary(seurat_obj$dist_to_boundary)
+```
+
+```{r find-genes}
+dist_res <- find_distance_associated_genes(
+  seurat_obj,
+  assay = params$assay,
+  focus = "peritumoral",
+  min_cells_expressing = 10,
+  n_distance_bins = 10,
+  max_dist_quantile = 0.95,
+  max_distance = 200,
+  p_adj_threshold = 0.05
+)
+head(dist_res$results)
+```
+
+```{r plot-dist-genes}
+dist_plots <- plot_distance_genes(dist_res, top_n = 12, sample_label = params$sample_label)
+save_fig(dist_plots$volcano, "dist_plots_volcano.png", width = 5, height = 3.6)
+save_fig(dist_plots$trends, "dist_plots_trends.png", width = 7.1, height = 4.7)
+```
+
+## TLS Analysis
+
+```{r tls-check}
+run_tls <- isTRUE(params$run_tls) &&
+  params$tls_celltype_col %in% colnames(seurat_obj@meta.data)
+if (!run_tls) {
+  message("Skipping TLS section: set run_tls = TRUE and make sure '",
+          params$tls_celltype_col, "' is a metadata column.")
+}
+```
+
+```{r call-tls, eval = run_tls}
+seurat_obj <- call_tls(
+  seurat_obj,
+  fov_name = params$fov_name,
+  celltype_col = params$tls_celltype_col,
+  b_types = params$tls_b_types,
+  t_types = params$tls_t_types,
+  dc_types = params$tls_dc_types,
+  eps = 50,
+  minPts = 20,
+  min_B = 20,
+  min_T = 20,
+  min_frac_B = 0.05
+)
+get_tls_summary(seurat_obj, fov_name = params$fov_name)
+```
+
+```{r plot-tls-map, eval = run_tls}
+save_fig(plot_tls_map(seurat_obj, fov_name = params$fov_name,
+                      celltype_col = params$tls_celltype_col,
+                      b_types = params$tls_b_types),
+         "plot_tls_map.png", width = 8, height = 6)
+save_fig(plot_tls_composition(seurat_obj, celltype_col = params$tls_celltype_col),
+         "plot_tls_composition.png", width = 8, height = 5)
+```
+
+```{r add-score, eval = run_tls}
+tls_signature_genes()
+seurat_obj <- add_tls_score(seurat_obj, assay = params$assay)
+```
+
+```{r plot-score, eval = run_tls}
+save_fig(plot_tls_score(seurat_obj, fov_name = params$fov_name, highlight = "outline"),
+         "plot_tls_score_outline.png", width = 8, height = 6)
+save_fig(plot_tls_score(seurat_obj, fov_name = params$fov_name, highlight = "ring",
+                        label_tls = TRUE),
+         "plot_tls_score_ring.png", width = 8, height = 6)
+save_fig(plot_tls_score(seurat_obj, fov_name = params$fov_name, highlight = "none"),
+         "plot_tls_score_none.png", width = 8, height = 6)
+```
+
+```{r compare-score, eval = run_tls}
+tls_stats <- summarize_tls_score(seurat_obj)
+tls_stats$by_status
+tls_stats$by_tls
+tls_stats$wilcox_p
+
+save_fig(plot_tls_score_comparison(seurat_obj, type = "beeswarm"),
+         "plot_tls_score_beeswarm.png", width = 6, height = 4.5)
+save_fig(plot_tls_score_comparison(seurat_obj, type = "violin"),
+         "plot_tls_score_violin.png", width = 6, height = 4.5)
+```
+
+## Files Written
+
+```{r files-written}
+pngs <- list.files(fig_dir, pattern = "\\.png$", full.names = TRUE)
+info <- file.info(pngs)
+info[order(info$mtime, decreasing = TRUE), "mtime", drop = FALSE]
+```
+
+## Session Info
+
+```{r session-info}
+sessionInfo()
+```
