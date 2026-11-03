@@ -112,6 +112,62 @@ results <- optimize_dbscan_params(
 )
 ```
 
+#### Evaluating Polygon Coverage and Purity
+
+Silhouette score measures cluster separation, but not how well the
+resulting polygons capture cancer cells. For candidates with low noise,
+build the polygons and score each by `cancer_covered` (fraction of
+cancer cells inside a polygon) and `purity` (fraction of cells inside
+polygons that are cancer):
+
+``` r
+
+library(ggplot2)
+library(tidyr)
+
+# Search over a grid of eps and minPts values
+results <- optimize_dbscan_params(seurat_obj)
+
+eval_polys <- function(obj, eps, minPts, fov = "fov") {
+  polys <- plot_dbscan_polygons(obj, fov = fov, eps = eps, minPts = minPts, plot = FALSE)
+  if (is.null(polys)) return(NULL)
+  coords <- Seurat::GetTissueCoordinates(obj, image = fov)
+  coords$is_cancer <- as.logical(obj$is_cancer)
+  pts    <- sf::st_as_sf(coords, coords = c("x", "y"))
+  region <- sf::st_union(sf::st_make_valid(polys))
+  inside <- lengths(sf::st_intersects(pts, region)) > 0
+  data.frame(eps = eps, minPts = minPts, n_regions = nrow(polys),
+             cancer_covered = mean(inside[coords$is_cancer]),
+             purity         = mean(coords$is_cancer[inside]))
+}
+
+cand <- subset(results, noise_pct < 0.15)[, c("eps", "minPts")]
+scores <- do.call(rbind, Map(eval_polys, list(seurat_obj), cand$eps, cand$minPts))
+scores[order(-scores$cancer_covered, -scores$purity), ]
+
+scores$label <- paste0(scores$eps, "/", scores$minPts)
+
+b <- 0.5
+scores$fbeta <- with(scores, (1 + b^2) * purity * cancer_covered /
+                       (b^2 * purity + cancer_covered))
+
+# visualize coverage vs purity
+long <- pivot_longer(scores, c(cancer_covered, purity),
+                     names_to = "metric", values_to = "value")
+
+ggplot(long, aes(factor(eps), factor(minPts), fill = value)) +
+  geom_tile(colour = "white") +
+  geom_text(aes(label = sprintf("%.2f", value)), size = 2.8) +
+  facet_wrap(~ metric, ncol = 1) +
+  scale_fill_viridis_c(labels = scales::percent) +
+  labs(x = "eps", y = "minPts", fill = NULL) +
+  theme_minimal() +
+  theme(panel.grid = element_blank())
+```
+
+`fbeta` combines both metrics into one score; with `b = 0.5`, purity
+counts more than coverage.
+
 ## Adding Polygon Membership
 
 Once you have polygons (from either the Shiny app or DBSCAN), annotate
