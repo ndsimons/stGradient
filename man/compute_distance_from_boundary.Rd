@@ -6,27 +6,33 @@
 \usage{
 compute_distance_from_boundary(
   seurat_obj,
-  polygon_col = "inside_polygon",
-  intratumoral_label = TRUE,
+  polygons = NULL,
   fov_name = "fov",
-  concavity = 2
+  polygon_col = NULL,
+  intratumoral_label = NULL,
+  concavity = NULL
 )
 }
 \arguments{
 \item{seurat_obj}{Seurat object.}
 
-\item{polygon_col}{Metadata column indicating inside/outside polygon.}
-
-\item{intratumoral_label}{Value in `polygon_col` that marks intratumoral cells.}
+\item{polygons}{sf polygon object. Defaults to the polygons stored by
+[add_dbscan_polygons()], retrieved with [get_cancer_regions()].}
 
 \item{fov_name}{Field of view/image name for coordinate extraction.}
 
-\item{concavity}{Concavity parameter passed to `concaveman`.}
+\item{polygon_col, intratumoral_label, concavity}{Deprecated and ignored. The
+boundary used to be a single concave hull around all intratumoral cells,
+which merged separate tumor nests and labelled the stroma between them as
+intratumoral.}
 }
 \value{
 Seurat object with `dist_to_boundary` and `abs_dist_to_boundary` metadata.
 }
 \description{
-Computes per-cell signed distance to an intratumoral boundary polygon built
-from intratumoral cells using a concave hull.
+Computes per-cell signed distance to the nearest cancer region polygon, using
+the same per-region polygons and definition as [calculate_boundary_distances()].
+`dist_to_boundary` is therefore identical to `boundary_distance` computed from
+the same polygons, and stroma between separate tumor nests is classed as
+outside the tumor.
 }

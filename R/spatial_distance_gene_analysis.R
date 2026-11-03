@@ -1,40 +1,41 @@
 #' Compute Signed Distance From Tumor Boundary
 #'
-#' Computes per-cell signed distance to an intratumoral boundary polygon built
-#' from intratumoral cells using a concave hull.
+#' Computes per-cell signed distance to the nearest cancer region polygon, using
+#' the same per-region polygons and definition as [calculate_boundary_distances()].
+#' `dist_to_boundary` is therefore identical to `boundary_distance` computed from
+#' the same polygons, and stroma between separate tumor nests is classed as
+#' outside the tumor.
 #'
 #' @param seurat_obj Seurat object.
-#' @param polygon_col Metadata column indicating inside/outside polygon.
-#' @param intratumoral_label Value in `polygon_col` that marks intratumoral cells.
+#' @param polygons sf polygon object. Defaults to the polygons stored by
+#'   [add_dbscan_polygons()], retrieved with [get_cancer_regions()].
 #' @param fov_name Field of view/image name for coordinate extraction.
-#' @param concavity Concavity parameter passed to `concaveman`.
+#' @param polygon_col,intratumoral_label,concavity Deprecated and ignored. The
+#'   boundary used to be a single concave hull around all intratumoral cells,
+#'   which merged separate tumor nests and labelled the stroma between them as
+#'   intratumoral.
 #' @return Seurat object with `dist_to_boundary` and `abs_dist_to_boundary` metadata.
 #' @export
 compute_distance_from_boundary <- function(seurat_obj,
-                                           polygon_col = "inside_polygon",
-                                           intratumoral_label = TRUE,
+                                           polygons = NULL,
                                            fov_name = "fov",
-                                           concavity = 2) {
-  coords <- get_cell_coords(seurat_obj, fov_name)
-
-  meta <- seurat_obj@meta.data[coords$cell_id, , drop = FALSE]
-  is_intratumoral <- as.character(meta[[polygon_col]]) == as.character(intratumoral_label)
-
-  if (sum(is_intratumoral, na.rm = TRUE) < 10) {
-    stop("Too few intratumoral cells to build a boundary polygon.")
+                                           polygon_col = NULL,
+                                           intratumoral_label = NULL,
+                                           concavity = NULL) {
+  deprecated <- c("polygon_col", "intratumoral_label", "concavity")
+  used <- deprecated[!vapply(list(polygon_col, intratumoral_label, concavity),
+                             is.null, logical(1))]
+  if (length(used) > 0) {
+    warning("`", paste(used, collapse = "`, `"), "` ",
+            if (length(used) == 1) "is" else "are",
+            " deprecated and ignored; the boundary is now taken from the cancer ",
+            "region polygons (see `polygons`).", call. = FALSE)
   }
 
-  intra_coords <- coords[which(is_intratumoral), c("x", "y"), drop = FALSE]
-  intra_sf <- sf::st_as_sf(intra_coords, coords = c("x", "y"))
-  boundary_polygon <- concaveman::concaveman(intra_sf, concavity = concavity)
-
-  all_points <- sf::st_as_sf(coords, coords = c("x", "y"))
-  boundary_line <- sf::st_boundary(boundary_polygon)
-  distances <- as.numeric(sf::st_distance(all_points, boundary_line))
-  inside <- sf::st_within(all_points, boundary_polygon, sparse = FALSE)[, 1]
-  signed_distance <- ifelse(inside, -distances, distances)
-  signed_distance <- expand_to_all_cells(signed_distance, coords$cell_id, seurat_obj,
-                                         "dist_to_boundary")
+  if (is.null(polygons)) {
+    polygons <- get_cancer_regions(seurat_obj, fov_name)
+  }
+  signed_distance <- calculate_boundary_distances(seurat_obj, polygons, fov_name)
 
   seurat_obj$dist_to_boundary <- signed_distance
   seurat_obj$abs_dist_to_boundary <- abs(signed_distance)

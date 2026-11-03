@@ -19,6 +19,17 @@ calculate_distance_profile <- function(seurat_obj,
     stop("inside_mode must be either 'all' or 'distance'")
   }
   
+  if (!"boundary_distance" %in% colnames(seurat_obj@meta.data)) {
+    stop("seurat_obj metadata must contain a 'boundary_distance' column")
+  }
+  
+  cell_names <- colnames(seurat_obj)
+  boundary_distance <- seurat_obj$boundary_distance
+  n_missing <- sum(is.na(boundary_distance))
+  if (n_missing > 0) {
+    warning(n_missing, " cell(s) have NA boundary_distance and will be excluded")
+  }
+  
   results <- data.frame()
   celltype_contributions <- list()
   
@@ -26,14 +37,14 @@ calculate_distance_profile <- function(seurat_obj,
     cat(paste0("Processing distance: ", dist, " μm (inside_mode = '", inside_mode, "')\n"))
     
     if (inside_mode == "all") {
-      inside_cells <- colnames(seurat_obj)[seurat_obj$boundary_distance < 0]
-      outside_cells <- colnames(seurat_obj)[seurat_obj$boundary_distance > 0 & 
-                                              seurat_obj$boundary_distance <= dist]
+      inside_cells <- cell_names[which(boundary_distance < 0)]
+      outside_cells <- cell_names[which(boundary_distance > 0 & 
+                                          boundary_distance <= dist)]
     } else if (inside_mode == "distance") {
-      inside_cells <- colnames(seurat_obj)[seurat_obj$boundary_distance < 0 & 
-                                             abs(seurat_obj$boundary_distance) <= dist]
-      outside_cells <- colnames(seurat_obj)[seurat_obj$boundary_distance > 0 & 
-                                              seurat_obj$boundary_distance <= dist]
+      inside_cells <- cell_names[which(boundary_distance < 0 & 
+                                         abs(boundary_distance) <= dist)]
+      outside_cells <- cell_names[which(boundary_distance > 0 & 
+                                          boundary_distance <= dist)]
     }
     
     if (length(inside_cells) < 10 || length(outside_cells) < 10) {
