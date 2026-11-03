@@ -8,7 +8,7 @@ calculate_distance_profile(
   seurat_obj,
   distance_thresholds = seq(10, 200, by = 10),
   metric = "all",
-  group_by = "cellType",
+  group_by,
   inside_mode = "all"
 )
 }

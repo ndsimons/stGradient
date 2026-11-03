@@ -7,9 +7,9 @@ output:
 params:
   rds_path: "path/to/sample_seuratObject.rds"
   fov_name: "fov"
-  celltype_col: "singleR.predicted.id.brcaAtlas"
-  cancer_labels: !r c("Cancer LumA SC", "Cancer LumB SC", "Cancer Her2 SC")
-  group_by: "singleR.predicted.id.brcaAtlas"
+  celltype_col: "first_type"
+  cancer_labels: !r c("DCIS 1", "DCIS 2", "Invasive_Tumor", "Prolif_Invasive_Tumor")
+  group_by: "first_type"
   sample_label: "Sample_01"
   assay: "Xenium"
   fig_dir: "vignettes"

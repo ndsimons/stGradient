@@ -1,52 +1,3 @@
-#' Default brca Atlas Cell Type Color Palette
-#'
-#' Returns a named vector of colors for singleR.predicted.id.brcaAtlas cell types.
-#' Used internally when celltype_col is "singleR.predicted.id.brcaAtlas" and no
-#' custom colors are provided.
-#'
-#' @return Named character vector of colors
-#' @keywords internal
-brca_atlas_colors <- function() {
-  stats::setNames(
-    c("#9DB0F5", "#676EA3",
-      "#d95f0e", "orange",
-      "mediumpurple1", "#a872cc", "#51047A", "#caa8e6", "#873bb3",
-      "deepskyblue2",
-      "violetred3",
-      "#bae4bc",
-      "springgreen",
-      "cyan", "turquoise3", "turquoise", "#237874",
-      "#BFAF00",
-      "#2CA02C",
-      "gold",
-      "#046E29",
-      "#ffffb2",
-      "maroon1", "#fbb4b9",
-      "dodgerblue", "mediumblue",
-      "grey75",
-      "#a50f15", "#F23333",
-      "bisque2"),
-    c("B cells Memory", "B cells Naive",
-      "CAFs MSC iCAF-like", "CAFs myCAF-like",
-      "Cancer Basal SC", "Cancer Cycling", "Cancer Her2 SC", "Cancer LumA SC", "Cancer LumB SC",
-      "Cycling PVL",
-      "Cycling T-cells",
-      "Cycling_Myeloid",
-      "DCs",
-      "Endothelial ACKR1", "Endothelial CXCL12", "Endothelial Lymphatic LYVE1", "Endothelial RGS5",
-      "Luminal Progenitors",
-      "Macrophage",
-      "Mature Luminal",
-      "Monocyte",
-      "Myoepithelial",
-      "NK cells", "NKT cells",
-      "PVL Differentiated", "PVL Immature",
-      "Plasmablasts",
-      "T cells CD4+", "T cells CD8+",
-      "Unknown")
-  )
-}
-
 #' Default Discrete Cell Type Palette
 #'
 #' Assigns colors from a curated qualitative palette of muted, complementary
@@ -258,7 +209,7 @@ plot_celltype_proportions <- function(celltype_contributions, top_n = 5,
 qc_plot_xenium <- function(
     obj,
     roi_col = "inside_polygon",
-    celltype_col = "singleR.predicted.id.brcaAtlas",
+    celltype_col,
     celltype_colors = NULL,
     strict_celltype_colors = FALSE,
     image = NULL,
@@ -284,12 +235,6 @@ qc_plot_xenium <- function(
     collect_legends = FALSE
 ) {
   show <- match.arg(show)
-
-  # Auto-apply brca atlas color palette
-
-  if (is.null(celltype_colors) && celltype_col == "singleR.predicted.id.brcaAtlas") {
-    celltype_colors <- brca_atlas_colors()
-  }
 
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("Please install ggplot2: install.packages('ggplot2')")
@@ -495,6 +440,9 @@ qc_plot_xenium <- function(
 
     p_celltype <- p_celltype +
       ggplot2::scale_color_manual(values = celltype_colors, name = celltype_col, drop = FALSE)
+  } else {
+    p_celltype <- p_celltype +
+      ggplot2::scale_color_manual(values = celltype_palette(df[[celltype_col]]), name = celltype_col)
   }
 
   if (isTRUE(flip_y)) {
@@ -570,11 +518,6 @@ plot_roi_celltype_dist <- function(
     label_accuracy = 0.1,
     label_pad_mult = 0.15
 ) {
-  # Auto-apply brca atlas color palette
-  if (is.null(celltype_colors) && celltype_col == "singleR.predicted.id.brcaAtlas") {
-    celltype_colors <- brca_atlas_colors()
-  }
-
   if (!requireNamespace("dplyr", quietly = TRUE)) {
     stop("Please install dplyr: install.packages('dplyr')")
   }
@@ -654,7 +597,7 @@ plot_roi_celltype_dist <- function(
     }
     p <- p + ggplot2::scale_fill_manual(values = celltype_colors, name = "Cell type", drop = FALSE)
   } else {
-    p <- p + ggplot2::guides(fill = ggplot2::guide_legend(title = "Cell type"))
+    p <- p + ggplot2::scale_fill_manual(values = celltype_palette(d[[celltype_col]]), name = "Cell type")
   }
 
   if (metric == "proportion") {
@@ -691,9 +634,8 @@ plot_roi_celltype_dist <- function(
 #' @param df Data frame with ROI and cell type columns
 #' @param roi_col ROI indicator column name
 #' @param celltype_col Cell type column name
-#' @param celltype_colors Optional named cell type color vector. If `NULL`, the
-#'   brca atlas palette is used for `"singleR.predicted.id.brcaAtlas"`, otherwise
-#'   a built-in qualitative palette.
+#' @param celltype_colors Optional named cell type color vector. If `NULL`, a
+#'   built-in qualitative palette is assigned to the cell types present.
 #' @param metric One of "count" or "proportion"
 #' @param order_by One of "inside", "total", "palette", "none"
 #' @param inside_label Label for inside ROI group
@@ -722,11 +664,6 @@ plot_roi_inout_celltype_stack <- function(
     xlab = NULL,
     ylab = NULL
 ) {
-  # Auto-apply brca atlas color palette
-  if (is.null(celltype_colors) && celltype_col == "singleR.predicted.id.brcaAtlas") {
-    celltype_colors <- brca_atlas_colors()
-  }
-
   if (!requireNamespace("dplyr", quietly = TRUE)) {
     stop("Please install dplyr: install.packages('dplyr')")
   }

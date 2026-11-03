@@ -104,7 +104,7 @@ calculate_de_strength <- function(inside_cells, outside_cells, seurat_obj) {
 #' @param group_by Metadata column with cell type annotations
 #' @return List with total difference and per-celltype breakdown
 #' @export
-calculate_composition_difference <- function(inside_cells, outside_cells, seurat_obj, group_by = "cellType") {
+calculate_composition_difference <- function(inside_cells, outside_cells, seurat_obj, group_by) {
   inside_types <- table(seurat_obj[[group_by]][inside_cells, ])
   outside_types <- table(seurat_obj[[group_by]][outside_cells, ])
   

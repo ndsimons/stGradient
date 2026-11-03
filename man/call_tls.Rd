@@ -7,7 +7,7 @@
 call_tls(
   seurat_obj,
   fov_name = "fov",
-  celltype_col = "first_type",
+  celltype_col,
   b_types = c("B_Cells"),
   t_types = c("CD4+_T_Cells", "CD8+_T_Cells"),
   dc_types = c("LAMP3+_DCs", "IRF7+_DCs"),

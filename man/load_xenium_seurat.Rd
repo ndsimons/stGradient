@@ -7,7 +7,7 @@
 load_xenium_seurat(
   rds_path,
   image = NULL,
-  celltype_col = "singleR.predicted.id.brcaAtlas",
+  celltype_col,
   cancer_labels = NULL,
   roi_cells = NULL,
   roi_col = "inside_polygon",

@@ -7,7 +7,7 @@
 build_outside_ppp(
   seurat_obj,
   polygons,
-  celltype_col = "singleR.predicted.id.brcaAtlas",
+  celltype_col,
   fov_name = "fov",
   min_cells = 10,
   window_obj = NULL

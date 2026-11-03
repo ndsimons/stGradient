@@ -4,7 +4,7 @@
 \alias{plot_tls_composition}
 \title{Plot TLS Cellular Composition}
 \usage{
-plot_tls_composition(seurat_obj, celltype_col = "first_type")
+plot_tls_composition(seurat_obj, celltype_col)
 }
 \arguments{
 \item{seurat_obj}{Seurat object processed with [call_tls()].}

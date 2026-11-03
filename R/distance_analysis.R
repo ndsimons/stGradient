@@ -12,7 +12,7 @@
 calculate_distance_profile <- function(seurat_obj, 
                                        distance_thresholds = seq(10, 200, by = 10),
                                        metric = "all",
-                                       group_by = "cellType",
+                                       group_by,
                                        inside_mode = "all") {
   
   if (!inside_mode %in% c("all", "distance")) {

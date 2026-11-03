@@ -28,8 +28,8 @@ library(stGradient)
 
 seurat_obj <- load_xenium_seurat(
   rds_path = "path/to/sample_seuratObject.rds",
-  celltype_col = "singleR.predicted.id.brcaAtlas",
-  cancer_labels = c("Cancer LumA SC", "Cancer LumB SC", "Cancer Her2 SC")
+  celltype_col = "first_type",
+  cancer_labels = c("DCIS 1", "DCIS 2", "Invasive_Tumor", "Prolif_Invasive_Tumor")
 )
 ```
 

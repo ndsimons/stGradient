@@ -8,7 +8,7 @@ calculate_composition_difference(
   inside_cells,
   outside_cells,
   seurat_obj,
-  group_by = "cellType"
+  group_by
 )
 }
 \arguments{

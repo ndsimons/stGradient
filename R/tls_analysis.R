@@ -50,7 +50,7 @@ tls_signature_genes <- function() {
 #' }
 call_tls <- function(seurat_obj,
                      fov_name = "fov",
-                     celltype_col = "first_type",
+                     celltype_col,
                      b_types = c("B_Cells"),
                      t_types = c("CD4+_T_Cells", "CD8+_T_Cells"),
                      dc_types = c("LAMP3+_DCs", "IRF7+_DCs"),
@@ -277,7 +277,7 @@ summarize_tls_score <- function(seurat_obj, score_col = "TLS_score") {
 #' @export
 plot_tls_map <- function(seurat_obj,
                          fov_name = "fov",
-                         celltype_col = "first_type",
+                         celltype_col,
                          b_types = c("B_Cells"),
                          point_size = 0.5) {
   df <- tls_cell_df(seurat_obj, fov_name)
@@ -307,7 +307,7 @@ plot_tls_map <- function(seurat_obj,
 #' @param celltype_col Metadata column with cell type labels.
 #' @return ggplot object.
 #' @export
-plot_tls_composition <- function(seurat_obj, celltype_col = "first_type") {
+plot_tls_composition <- function(seurat_obj, celltype_col) {
   meta <- seurat_obj@meta.data
   if (!"TLS_id" %in% colnames(meta)) {
     stop("Metadata column 'TLS_id' not found. Run call_tls() first.", call. = FALSE)

@@ -14,7 +14,7 @@
 #' @keywords internal
 build_outside_ppp <- function(seurat_obj,
                               polygons,
-                              celltype_col = "singleR.predicted.id.brcaAtlas",
+                              celltype_col,
                               fov_name = "fov",
                               min_cells = 10,
                               window_obj = NULL) {
@@ -90,7 +90,7 @@ calculate_pcf_outside_summary <- function(seurat_obj,
                                           polygons,
                                           distance = 30,
                                           min_cells = 10,
-                                          celltype_col = "singleR.predicted.id.brcaAtlas",
+                                          celltype_col,
                                           fov_name = "fov",
                                           include_self_pairs = TRUE,
                                           ordered_pairs = FALSE,
@@ -273,7 +273,7 @@ plot_pcf_outside_heatmap <- function(pcf_summary, midpoint = 1) {
 #' @export
 plot_pcf_outside_pair_envelopes <- function(seurat_obj,
                                             polygons,
-                                            celltype_col = "singleR.predicted.id.brcaAtlas",
+                                            celltype_col,
                                             fov_name = "fov",
                                             min_cells = 10,
                                             include_self_pairs = FALSE,
