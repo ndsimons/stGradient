@@ -18,7 +18,7 @@ Define ROIs via DBSCAN or interactive polygons
 - [`get_cancer_regions()`](get_cancer_regions.md) : Get Cancer Region
   Polygons
 - [`optimize_dbscan_params()`](optimize_dbscan_params.md) : Optimize
-  DBSCAN Parameters via Silhouette Score
+  DBSCAN Parameters
 - [`add_polygon_membership()`](add_polygon_membership.md) : Add Polygon
   Membership to Seurat Object
 - [`plot_dbscan_polygons()`](plot_dbscan_polygons.md) : Plot

@@ -76,7 +76,7 @@ three steps:
     not assigned to any cluster, so they fall outside every polygon.
     `noise_pct` is the fraction of cancer cells labeled noise. Settings
     with a high `noise_pct` miss many cancer cells, so only candidates
-    with `noise_pct` below 15% are kept.
+    below the `noise_pct` cutoff (default 15%) are scored further.
 3.  **Compare coverage and purity.** For each remaining candidate,
     polygons are built and scored by `cancer_covered` (fraction of
     cancer cells that fall inside a polygon) and `purity` (fraction of
@@ -89,14 +89,21 @@ three steps:
 
 ### Optimizing DBSCAN Parameters
 
-Run the grid search with
-[`optimize_dbscan_params()`](../reference/optimize_dbscan_params.md).
-Results are sorted by silhouette score:
+[`optimize_dbscan_params()`](../reference/optimize_dbscan_params.md)
+runs all three steps in one call. `noise_pct` sets the maximum fraction
+of cancer cells labeled noise for a combination to be scored, `b` sets
+the F-beta weighting, and `plot = TRUE` draws the coverage and purity
+heatmap shown above. Results are sorted by `fbeta`, so the best
+combination is in the first row:
 
 ``` r
 
-# Search over a grid of eps and minPts values
-results <- optimize_dbscan_params(seurat_obj)
+results <- optimize_dbscan_params(
+  seurat_obj,
+  noise_pct = 0.15,  # keep combinations with < 15% of cancer cells as noise
+  b = 0.5,           # weight purity more than coverage
+  plot = TRUE        # draw the coverage vs purity heatmap
+)
 
 # View top parameter combinations
 head(results)
@@ -106,63 +113,25 @@ best <- results[1, ]
 seurat_obj <- add_dbscan_polygons(seurat_obj, eps = best$eps, minPts = best$minPts)
 ```
 
+The returned data frame has one row per `eps`/`minPts` combination with
+`sil_score`, `n_clusters`, `noise_pct`, `n_regions`, `cancer_covered`,
+`purity` and `fbeta`. Combinations above the `noise_pct` cutoff have
+`NA` for the coverage, purity and `fbeta` columns. The heatmap is also
+stored in `attr(results, "plot")` for saving.
+
 You can customize the search ranges:
 
 ``` r
 
 results <- optimize_dbscan_params(
   seurat_obj,
+  noise_pct = 0.15,
+  b = 0.5,
+  plot = TRUE,
   eps_range = seq(20, 80, by = 10),
   minPts_range = c(15, 20, 30, 50),
   max_sample = 30000  # reduce for faster computation
 )
-```
-
-Score the low-noise candidates by coverage and purity:
-
-``` r
-
-library(ggplot2)
-library(tidyr)
-
-# Search over a grid of eps and minPts values
-results <- optimize_dbscan_params(seurat_obj)
-
-eval_polys <- function(obj, eps, minPts, fov = "fov") {
-  polys <- plot_dbscan_polygons(obj, fov = fov, eps = eps, minPts = minPts, plot = FALSE)
-  if (is.null(polys)) return(NULL)
-  coords <- Seurat::GetTissueCoordinates(obj, image = fov)
-  coords$is_cancer <- as.logical(obj$is_cancer)
-  pts    <- sf::st_as_sf(coords, coords = c("x", "y"))
-  region <- sf::st_union(sf::st_make_valid(polys))
-  inside <- lengths(sf::st_intersects(pts, region)) > 0
-  data.frame(eps = eps, minPts = minPts, n_regions = nrow(polys),
-             cancer_covered = mean(inside[coords$is_cancer]),
-             purity         = mean(coords$is_cancer[inside]))
-}
-
-cand <- subset(results, noise_pct < 0.15)[, c("eps", "minPts")]
-scores <- do.call(rbind, Map(eval_polys, list(seurat_obj), cand$eps, cand$minPts))
-scores[order(-scores$cancer_covered, -scores$purity), ]
-
-scores$label <- paste0(scores$eps, "/", scores$minPts)
-
-b <- 0.5
-scores$fbeta <- with(scores, (1 + b^2) * purity * cancer_covered /
-                       (b^2 * purity + cancer_covered))
-
-# visualize coverage vs purity
-long <- pivot_longer(scores, c(cancer_covered, purity),
-                     names_to = "metric", values_to = "value")
-
-ggplot(long, aes(factor(eps), factor(minPts), fill = value)) +
-  geom_tile(colour = "white") +
-  geom_text(aes(label = sprintf("%.2f", value)), size = 2.8) +
-  facet_wrap(~ metric, ncol = 1) +
-  scale_fill_viridis_c(labels = scales::percent) +
-  labs(x = "eps", y = "minPts", fill = NULL) +
-  theme_minimal() +
-  theme(panel.grid = element_blank())
 ```
 
 ### Visualizing Detected Polygons

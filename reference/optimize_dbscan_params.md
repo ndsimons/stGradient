@@ -1,20 +1,27 @@
-# Optimize DBSCAN Parameters via Silhouette Score
+# Optimize DBSCAN Parameters
 
-Performs a grid search over eps and minPts parameter combinations for
-DBSCAN clustering of cancer cell coordinates, evaluating each
-combination using the average silhouette score. Returns a data frame of
-results ranked by silhouette score to help select optimal parameters for
-[`add_dbscan_polygons()`](add_dbscan_polygons.md).
+Performs a grid search over eps and minPts for DBSCAN clustering of
+cancer cell coordinates. Each combination is scored by average
+silhouette score and by the fraction of cancer cells labeled noise.
+Combinations with noise below \`noise_pct\` are turned into concave hull
+polygons and scored by coverage (fraction of cancer cells inside a
+polygon) and purity (fraction of cells inside polygons that are cancer),
+which are combined into an F-beta score.
 
 ## Usage
 
 ``` r
 optimize_dbscan_params(
   seurat_obj,
+  noise_pct = 0.15,
+  b = 0.5,
+  plot = TRUE,
   fov_name = "fov",
   cancer_col = "is_cancer",
   eps_range = seq(10, 100, by = 5),
   minPts_range = c(10, 15, 20, 30, 50),
+  concavity = 2,
+  length_threshold = 0,
   max_sample = 46000,
   verbose = TRUE
 )
@@ -25,6 +32,21 @@ optimize_dbscan_params(
 - seurat_obj:
 
   Seurat object with spatial coordinates
+
+- noise_pct:
+
+  Maximum fraction of cancer cells labeled noise for a combination to be
+  scored by coverage and purity (default: 0.15)
+
+- b:
+
+  Beta for the F-beta score. Values below 1 weight purity more than
+  coverage; values above 1 weight coverage more (default: 0.5)
+
+- plot:
+
+  Print a heatmap of coverage and purity for the scored combinations
+  (default: TRUE)
 
 - fov_name:
 
@@ -43,6 +65,14 @@ optimize_dbscan_params(
   Numeric vector of minPts values to test (default: c(10, 15, 20, 30,
   50))
 
+- concavity:
+
+  Concave hull concavity parameter used to build polygons (default: 2)
+
+- length_threshold:
+
+  Edge length threshold for concave hull (default: 0)
+
 - max_sample:
 
   Maximum number of non-noise points to sample for silhouette
@@ -54,18 +84,18 @@ optimize_dbscan_params(
 
 ## Value
 
-A data frame with columns: eps, minPts, sil_score, n_clusters,
-noise_pct, sorted by descending silhouette score. The best combination
-is in the first row.
+A data frame with columns eps, minPts, sil_score, n_clusters, noise_pct,
+n_regions, cancer_covered, purity and fbeta, sorted by descending fbeta
+(then silhouette score). The best combination is in the first row.
+Combinations above \`noise_pct\` have \`NA\` coverage, purity and fbeta.
+When \`plot = TRUE\`, the heatmap is also stored in \`attr(result,
+"plot")\`.
 
 ## Examples
 
 ``` r
 if (FALSE) { # \dontrun{
-# Run parameter optimization
-results <- optimize_dbscan_params(seurat_obj)
-
-# View best parameters
+results <- optimize_dbscan_params(seurat_obj, noise_pct = 0.15, b = 0.5, plot = TRUE)
 head(results)
 
 # Use best parameters
