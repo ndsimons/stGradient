@@ -48,7 +48,7 @@ plot_dbscan_polygons(
 
 - sample_name:
 
-  Sample name for plot title
+  Optional sample name prefixed to the plot titles
 
 - plot:
 
