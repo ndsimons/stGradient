@@ -61,7 +61,7 @@ reference:
       - launch_stGradient
 
   - title: Region Selection
-    desc: Define tumor regions via DBSCAN or interactive polygons
+    desc: Define ROIs via DBSCAN or interactive polygons
     contents:
       - add_dbscan_polygons
       - get_cancer_regions

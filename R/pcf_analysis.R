@@ -4,7 +4,7 @@
 #' tumor polygons. This helper is used internally by PCF analysis functions.
 #'
 #' @param seurat_obj Seurat object with spatial coordinates.
-#' @param polygons sf polygon object representing tumor regions.
+#' @param polygons sf polygon object representing ROIs.
 #' @param celltype_col Metadata column containing cell type labels.
 #' @param fov_name Field of view/image name passed to `Seurat::GetTissueCoordinates`.
 #' @param min_cells Minimum number of cells required per cell type.
@@ -74,7 +74,7 @@ build_outside_ppp <- function(seurat_obj,
 #' using only cells outside the tumor polygons.
 #'
 #' @param seurat_obj Seurat object with spatial coordinates.
-#' @param polygons sf polygon object representing tumor regions.
+#' @param polygons sf polygon object representing ROIs.
 #' @param distance Target distance at which to extract PCF value.
 #' @param min_cells Minimum number of cells required per cell type.
 #' @param celltype_col Metadata column containing cell type labels.
@@ -255,7 +255,7 @@ plot_pcf_outside_heatmap <- function(pcf_summary, midpoint = 1) {
 #' named `<file stem>_<type1>_vs_<type2>.png`.
 #'
 #' @param seurat_obj Seurat object with spatial coordinates.
-#' @param polygons sf polygon object representing tumor regions.
+#' @param polygons sf polygon object representing ROIs.
 #' @param celltype_col Metadata column containing cell type labels.
 #' @param fov_name Field of view/image name passed to `Seurat::GetTissueCoordinates`.
 #' @param min_cells Minimum number of cells required per cell type.

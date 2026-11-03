@@ -20,7 +20,7 @@ calculate_pcf_outside_summary(
 \arguments{
 \item{seurat_obj}{Seurat object with spatial coordinates.}
 
-\item{polygons}{sf polygon object representing tumor regions.}
+\item{polygons}{sf polygon object representing ROIs.}
 
 \item{distance}{Target distance at which to extract PCF value.}
 

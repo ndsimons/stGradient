@@ -25,7 +25,7 @@ plot_pcf_outside_pair_envelopes(
 \arguments{
 \item{seurat_obj}{Seurat object with spatial coordinates.}
 
-\item{polygons}{sf polygon object representing tumor regions.}
+\item{polygons}{sf polygon object representing ROIs.}
 
 \item{celltype_col}{Metadata column containing cell type labels.}
 

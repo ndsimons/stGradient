@@ -6,7 +6,7 @@ Authors@R: c(
     person("Anton Kravchenko", role = "ctb"),
     person("Alexa Dowdell", role = "ctb")
     )
-Description: Interactive tool for selecting tumor regions in spatial transcriptomics data
+Description: Interactive tool for selecting regions of interest (ROIs) in spatial transcriptomics data
     and analyzing genomic separation at varying distances from tumor boundaries. Provides
     a Shiny interface for drawing polygons and functions for calculating distance-based
     metrics including transcriptomic distance, differential expression strength, and

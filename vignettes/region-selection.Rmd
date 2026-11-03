@@ -17,14 +17,14 @@ knitr::opts_chunk$set(
 
 ## Introduction
 
-stGradient provides two approaches for defining tumor regions:
+stGradient provides two approaches for defining regions of interest (ROIs):
 
 1. **Interactive selection** via the Shiny app
 2. **Automated detection** using DBSCAN clustering
 
 ## Launching the Interactive Polygon Selector
 
-The Shiny app allows you to interactively draw polygons on spatial data to define tumor regions:
+The Shiny app allows you to interactively draw polygons on spatial data to define ROIs:
 
 ```{r launch}
 launch_stGradient()
@@ -44,7 +44,7 @@ The resulting polygon object is an `sf` object that can be passed directly to do
 
 ## DBSCAN-Based Polygon Detection
 
-The `add_dbscan_polygons()` function automatically identifies tumor regions by clustering cancer-labeled cells using the DBSCAN algorithm, then wrapping detected clusters in concave hull polygons.
+The `add_dbscan_polygons()` function automatically identifies ROIs by clustering cancer-labeled cells using the DBSCAN algorithm, then wrapping detected clusters in concave hull polygons.
 
 ```{r dbscan-basic}
 library(stGradient)

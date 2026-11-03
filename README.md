@@ -6,7 +6,7 @@
 
 ### R toolkit for distance-based analyses of spatial transcriptomics data
 
-stGradient provides tools to interactively select tumor regions and analyze genomic separation at varying distances from tumor boundaries. Designed for spatial transcriptomics analysis, particularly for understanding tumor microenvironment architecture.
+stGradient provides tools to interactively select regions of interest (ROIs) and analyze genomic separation at varying distances from tumor boundaries. Designed for spatial transcriptomics analysis, particularly for understanding tumor microenvironment architecture.
 
 ## Installation
 
@@ -41,7 +41,7 @@ seurat_obj <- load_xenium_seurat(
   cancer_labels = c("Cancer LumA SC", "Cancer LumB SC")
 )
 
-# Automatically detect tumor regions with DBSCAN
+# Automatically detect ROIs with DBSCAN
 seurat_obj <- add_dbscan_polygons(seurat_obj)
 auto_polygons <- get_cancer_regions(seurat_obj)
 
