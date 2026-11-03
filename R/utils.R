@@ -397,6 +397,8 @@ optimize_dbscan_params <- function(seurat_obj,
 #' @param length_threshold Edge length threshold for concave hull (default: 0)
 #' @param sample_name Sample name for plot title
 #' @param plot Whether to generate visualization plots (default: TRUE)
+#' @param ncol Number of plot columns: 2 places the plots side by side, 1 stacks
+#'   them vertically (default: 2)
 #'
 #' @return sf object containing polygon geometries for each cancer region
 #' @export
@@ -431,7 +433,11 @@ plot_dbscan_polygons <- function(seurat_obj,
                                 concavity = 2,
                                 length_threshold = 0,
                                 sample_name = NULL,
-                                plot = TRUE) {
+                                plot = TRUE,
+                                ncol = 2) {
+  if (!ncol %in% c(1, 2)) {
+    stop("`ncol` must be 1 or 2")
+  }
   
   # Check required packages
   if (!requireNamespace("sf", quietly = TRUE)) {
@@ -524,7 +530,7 @@ plot_dbscan_polygons <- function(seurat_obj,
                      plot.title = ggplot2::element_text(color = "white")) +
       ggplot2::ggtitle(paste0(sample_name, ": cluster polygons"))
     
-    print(cowplot::plot_grid(p1, p2))
+    print(cowplot::plot_grid(p1, p2, ncol = ncol))
   }
   
   # Return the polygons

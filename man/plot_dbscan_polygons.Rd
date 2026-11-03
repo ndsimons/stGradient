@@ -12,7 +12,8 @@ plot_dbscan_polygons(
   concavity = 2,
   length_threshold = 0,
   sample_name = NULL,
-  plot = TRUE
+  plot = TRUE,
+  ncol = 2
 )
 }
 \arguments{
@@ -31,6 +32,9 @@ plot_dbscan_polygons(
 \item{sample_name}{Sample name for plot title}
 
 \item{plot}{Whether to generate visualization plots (default: TRUE)}
+
+\item{ncol}{Number of plot columns: 2 places the plots side by side, 1 stacks
+them vertically (default: 2)}
 }
 \value{
 sf object containing polygon geometries for each cancer region
