@@ -21,7 +21,7 @@ seurat_obj <- load_xenium_seurat(
 
 See: [Loading & Setup](loading-and-setup.md)
 
-## Step 2: Define Tumor Regions
+## Step 2: Define ROIs
 
 Option A — Interactive (Shiny app):
 

@@ -2,7 +2,8 @@
 
 ## Introduction
 
-stGradient provides two approaches for defining tumor regions:
+stGradient provides two approaches for defining regions of interest
+(ROIs):
 
 1.  **Interactive selection** via the Shiny app
 2.  **Automated detection** using DBSCAN clustering
@@ -10,7 +11,7 @@ stGradient provides two approaches for defining tumor regions:
 ## Launching the Interactive Polygon Selector
 
 The Shiny app allows you to interactively draw polygons on spatial data
-to define tumor regions:
+to define ROIs:
 
 ``` r
 
@@ -35,9 +36,9 @@ directly to downstream stGradient functions. ![](stGradient_launch.png)
 ## DBSCAN-Based Polygon Detection
 
 The [`add_dbscan_polygons()`](../reference/add_dbscan_polygons.md)
-function automatically identifies tumor regions by clustering
-cancer-labeled cells using the DBSCAN algorithm, then wrapping detected
-clusters in concave hull polygons.
+function automatically identifies ROIs by clustering cancer-labeled
+cells using the DBSCAN algorithm, then wrapping detected clusters in
+concave hull polygons.
 
 ``` r
 

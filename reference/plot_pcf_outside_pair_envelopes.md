@@ -35,7 +35,7 @@ plot_pcf_outside_pair_envelopes(
 
 - polygons:
 
-  sf polygon object representing tumor regions.
+  sf polygon object representing ROIs.
 
 - celltype_col:
 

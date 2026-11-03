@@ -11,7 +11,7 @@ Load data and launch the interactive selector
 
 ## Region Selection
 
-Define tumor regions via DBSCAN or interactive polygons
+Define ROIs via DBSCAN or interactive polygons
 
 - [`add_dbscan_polygons()`](add_dbscan_polygons.md) : Automatically
   detect cancer cell regions and create polygons

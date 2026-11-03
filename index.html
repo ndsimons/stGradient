@@ -11,8 +11,8 @@
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="stGradient - Spatial Analysis of Tumor Boundaries">
-<meta name="description" content="Interactive tool for selecting tumor regions in spatial transcriptomics data and analyzing genomic separation at varying distances from tumor boundaries. Provides a Shiny interface for drawing polygons and functions for calculating distance-based metrics including transcriptomic distance, differential expression strength, and cell type composition differences.">
-<meta property="og:description" content="Interactive tool for selecting tumor regions in spatial transcriptomics data and analyzing genomic separation at varying distances from tumor boundaries. Provides a Shiny interface for drawing polygons and functions for calculating distance-based metrics including transcriptomic distance, differential expression strength, and cell type composition differences.">
+<meta name="description" content="Interactive tool for selecting regions of interest (ROIs) in spatial transcriptomics data and analyzing genomic separation at varying distances from tumor boundaries. Provides a Shiny interface for drawing polygons and functions for calculating distance-based metrics including transcriptomic distance, differential expression strength, and cell type composition differences.">
+<meta property="og:description" content="Interactive tool for selecting regions of interest (ROIs) in spatial transcriptomics data and analyzing genomic separation at varying distances from tumor boundaries. Provides a Shiny interface for drawing polygons and functions for calculating distance-based metrics including transcriptomic distance, differential expression strength, and cell type composition differences.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -71,7 +71,7 @@
 <div class="section level3">
 <h3 id="r-toolkit-for-distance-based-analyses-of-spatial-transcriptomics-data">R toolkit for distance-based analyses of spatial transcriptomics data<a class="anchor" aria-label="anchor" href="#r-toolkit-for-distance-based-analyses-of-spatial-transcriptomics-data"></a>
 </h3>
-<p>stGradient provides tools to interactively select tumor regions and analyze genomic separation at varying distances from tumor boundaries. Designed for spatial transcriptomics analysis, particularly for understanding tumor microenvironment architecture.</p>
+<p>stGradient provides tools to interactively select regions of interest (ROIs) and analyze genomic separation at varying distances from tumor boundaries. Designed for spatial transcriptomics analysis, particularly for understanding tumor microenvironment architecture.</p>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -134,7 +134,7 @@
 <span>  cancer_labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Cancer LumA SC"</span>, <span class="st">"Cancer LumB SC"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Automatically detect tumor regions with DBSCAN</span></span>
+<span><span class="co"># Automatically detect ROIs with DBSCAN</span></span>
 <span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/add_dbscan_polygons.html">add_dbscan_polygons</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span></span>
 <span><span class="va">auto_polygons</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_cancer_regions.html">get_cancer_regions</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span></span>
 <span></span>

@@ -25,7 +25,7 @@ build_outside_ppp(
 
 - polygons:
 
-  sf polygon object representing tumor regions.
+  sf polygon object representing ROIs.
 
 - celltype_col:
 

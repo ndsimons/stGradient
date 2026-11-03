@@ -78,7 +78,8 @@
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
-<p>stGradient provides two approaches for defining tumor regions:</p>
+<p>stGradient provides two approaches for defining regions of interest
+(ROIs):</p>
 <ol style="list-style-type: decimal">
 <li>
 <strong>Interactive selection</strong> via the Shiny app</li>
@@ -90,7 +91,7 @@
 <h2 id="launching-the-interactive-polygon-selector">Launching the Interactive Polygon Selector<a class="anchor" aria-label="anchor" href="#launching-the-interactive-polygon-selector"></a>
 </h2>
 <p>The Shiny app allows you to interactively draw polygons on spatial
-data to define tumor regions:</p>
+data to define ROIs:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/launch_stGradient.html">launch_stGradient</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="section level3">
@@ -124,9 +125,8 @@ passed directly to downstream stGradient functions. <img src="stGradient_launch.
 <h2 id="dbscan-based-polygon-detection">DBSCAN-Based Polygon Detection<a class="anchor" aria-label="anchor" href="#dbscan-based-polygon-detection"></a>
 </h2>
 <p>The <code><a href="../reference/add_dbscan_polygons.html">add_dbscan_polygons()</a></code> function automatically
-identifies tumor regions by clustering cancer-labeled cells using the
-DBSCAN algorithm, then wrapping detected clusters in concave hull
-polygons.</p>
+identifies ROIs by clustering cancer-labeled cells using the DBSCAN
+algorithm, then wrapping detected clusters in concave hull polygons.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">stGradient</span><span class="op">)</span></span>
 <span></span>

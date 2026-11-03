@@ -118,7 +118,7 @@ plot_dbscan_polygons(seurat_obj)
 
 ### PCF Heatmap
 
-Pairwise cell type co-occurrence outside tumor regions:
+Pairwise cell type co-occurrence outside ROIs:
 
 ``` r
 

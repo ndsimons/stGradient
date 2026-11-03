@@ -28,7 +28,7 @@ calculate_pcf_outside_summary(
 
 - polygons:
 
-  sf polygon object representing tumor regions.
+  sf polygon object representing ROIs.
 
 - distance:
 
