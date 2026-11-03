@@ -15,7 +15,8 @@ plot_dbscan_polygons(
   concavity = 2,
   length_threshold = 0,
   sample_name = NULL,
-  plot = TRUE
+  plot = TRUE,
+  ncol = 2
 )
 ```
 
@@ -52,6 +53,11 @@ plot_dbscan_polygons(
 - plot:
 
   Whether to generate visualization plots (default: TRUE)
+
+- ncol:
+
+  Number of plot columns: 2 places the plots side by side, 1 stacks them
+  vertically (default: 2)
 
 ## Value
 
