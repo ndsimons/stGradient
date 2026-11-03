@@ -9,7 +9,7 @@ metadata.
 qc_plot_xenium(
   obj,
   roi_col = "inside_polygon",
-  celltype_col = "singleR.predicted.id.brcaAtlas",
+  celltype_col,
   celltype_colors = NULL,
   strict_celltype_colors = FALSE,
   image = NULL,

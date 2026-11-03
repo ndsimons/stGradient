@@ -41,8 +41,8 @@ library(stGradient)
 # Load a Xenium Seurat object
 seurat_obj <- load_xenium_seurat(
   rds_path = "path/to/sample.rds",
-  celltype_col = "celltype",
-  cancer_labels = c("Cancer LumA SC", "Cancer LumB SC")
+  celltype_col = "first_type",
+  cancer_labels = c("DCIS 1", "DCIS 2", "Invasive_Tumor", "Prolif_Invasive_Tumor")
 )
 
 # Automatically detect ROIs with DBSCAN
@@ -56,7 +56,8 @@ seurat_obj$boundary_distance <- calculate_boundary_distances(seurat_obj, auto_po
 results <- calculate_distance_profile(
   seurat_obj,
   distance_thresholds = seq(10, 200, by = 10),
-  metric = "all"
+  metric = "all",
+  group_by = "first_type"
 )
 
 # Visualize

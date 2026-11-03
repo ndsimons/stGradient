@@ -34,7 +34,7 @@ pcf_summary <- calculate_pcf_outside_summary(
   polygons = auto_polygons,
   distance = 200,
   min_cells = 10,
-  celltype_col = "singleR.predicted.id.brcaAtlas",
+  celltype_col = "first_type",
   include_self_pairs = TRUE,
   ordered_pairs = FALSE
 )
@@ -80,7 +80,7 @@ statistical significance:
 env_list <- plot_pcf_outside_pair_envelopes(
   seurat_obj = seurat_obj,
   polygons = auto_polygons,
-  celltype_col = "singleR.predicted.id.brcaAtlas",
+  celltype_col = "first_type",
   min_cells = 10,
   include_self_pairs = FALSE,
   ordered_pairs = FALSE,

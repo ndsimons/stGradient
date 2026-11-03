@@ -125,7 +125,7 @@ polygon boundary:</p>
 <p>Sum of squared differences in cell type proportions between inside
 and outside groups.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cd</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculate_composition_difference.html">calculate_composition_difference</a></span><span class="op">(</span><span class="va">inside_cells</span>, <span class="va">outside_cells</span>, <span class="va">seurat_obj</span>, group_by <span class="op">=</span> <span class="st">"cellType"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">cd</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculate_composition_difference.html">calculate_composition_difference</a></span><span class="op">(</span><span class="va">inside_cells</span>, <span class="va">outside_cells</span>, <span class="va">seurat_obj</span>, group_by <span class="op">=</span> <span class="st">"first_type"</span><span class="op">)</span></span></code></pre></div>
 <ul>
 <li>Range: 0 (identical composition) to ~2</li>
 <li>Independent of sample size</li>
@@ -154,7 +154,7 @@ distances:</p>
 <span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
 <span>  distance_thresholds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">200</span>, by <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>,</span>
 <span>  metric <span class="op">=</span> <span class="st">"all"</span>,</span>
-<span>  group_by <span class="op">=</span> <span class="st">"cellType"</span>,</span>
+<span>  group_by <span class="op">=</span> <span class="st">"first_type"</span>,</span>
 <span>  inside_mode <span class="op">=</span> <span class="st">"all"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -195,8 +195,8 @@ group:</p>
 </table>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Compare both modes</span></span>
-<span><span class="va">results_all</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculate_distance_profile.html">calculate_distance_profile</a></span><span class="op">(</span><span class="va">seurat_obj</span>, inside_mode <span class="op">=</span> <span class="st">"all"</span><span class="op">)</span></span>
-<span><span class="va">results_dist</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculate_distance_profile.html">calculate_distance_profile</a></span><span class="op">(</span><span class="va">seurat_obj</span>, inside_mode <span class="op">=</span> <span class="st">"distance"</span><span class="op">)</span></span>
+<span><span class="va">results_all</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculate_distance_profile.html">calculate_distance_profile</a></span><span class="op">(</span><span class="va">seurat_obj</span>, group_by <span class="op">=</span> <span class="st">"first_type"</span>, inside_mode <span class="op">=</span> <span class="st">"all"</span><span class="op">)</span></span>
+<span><span class="va">results_dist</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculate_distance_profile.html">calculate_distance_profile</a></span><span class="op">(</span><span class="va">seurat_obj</span>, group_by <span class="op">=</span> <span class="st">"first_type"</span>, inside_mode <span class="op">=</span> <span class="st">"distance"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">combined</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">results_all</span><span class="op">$</span><span class="va">profile</span>, <span class="va">results_dist</span><span class="op">$</span><span class="va">profile</span><span class="op">)</span></span></code></pre></div>
 </div>

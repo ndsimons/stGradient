@@ -90,8 +90,8 @@ step, see the topic-specific vignettes linked below.</p>
 <span></span>
 <span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/load_xenium_seurat.html">load_xenium_seurat</a></span><span class="op">(</span></span>
 <span>  rds_path <span class="op">=</span> <span class="st">"path/to/sample.rds"</span>,</span>
-<span>  celltype_col <span class="op">=</span> <span class="st">"singleR.predicted.id.brcaAtlas"</span>,</span>
-<span>  cancer_labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Cancer LumA SC"</span>, <span class="st">"Cancer LumB SC"</span>, <span class="st">"Cancer Her2 SC"</span><span class="op">)</span></span>
+<span>  celltype_col <span class="op">=</span> <span class="st">"first_type"</span>,</span>
+<span>  cancer_labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"DCIS 1"</span>, <span class="st">"DCIS 2"</span>, <span class="st">"Invasive_Tumor"</span>, <span class="st">"Prolif_Invasive_Tumor"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>See: <a href="loading-and-setup.html">Loading &amp; Setup</a></p>
 </div>
@@ -123,7 +123,7 @@ step, see the topic-specific vignettes linked below.</p>
 <span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
 <span>  distance_thresholds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">200</span>, by <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>,</span>
 <span>  metric <span class="op">=</span> <span class="st">"all"</span>,</span>
-<span>  group_by <span class="op">=</span> <span class="st">"cellType"</span>,</span>
+<span>  group_by <span class="op">=</span> <span class="st">"first_type"</span>,</span>
 <span>  inside_mode <span class="op">=</span> <span class="st">"all"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -155,7 +155,7 @@ pair correlation functions. Requires the <code>spatstat.geom</code> and
 <span>  polygons <span class="op">=</span> <span class="va">auto_polygons</span>,</span>
 <span>  distance <span class="op">=</span> <span class="fl">200</span>,</span>
 <span>  min_cells <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  celltype_col <span class="op">=</span> <span class="st">"singleR.predicted.id.brcaAtlas"</span>,</span>
+<span>  celltype_col <span class="op">=</span> <span class="st">"first_type"</span>,</span>
 <span>  include_self_pairs <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  ordered_pairs <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
@@ -165,7 +165,7 @@ pair correlation functions. Requires the <code>spatstat.geom</code> and
 <span><span class="va">env_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_pcf_outside_pair_envelopes.html">plot_pcf_outside_pair_envelopes</a></span><span class="op">(</span></span>
 <span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
 <span>  polygons <span class="op">=</span> <span class="va">auto_polygons</span>,</span>
-<span>  celltype_col <span class="op">=</span> <span class="st">"singleR.predicted.id.brcaAtlas"</span>,</span>
+<span>  celltype_col <span class="op">=</span> <span class="st">"first_type"</span>,</span>
 <span>  min_cells <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  nsim <span class="op">=</span> <span class="fl">39</span>,</span>
 <span>  file <span class="op">=</span> <span class="st">"pcf_outside_all_pairs.png"</span></span>

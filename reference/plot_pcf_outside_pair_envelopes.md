@@ -11,7 +11,7 @@ stem\>\_\<type1\>\_vs\_\<type2\>.png\`.
 plot_pcf_outside_pair_envelopes(
   seurat_obj,
   polygons,
-  celltype_col = "singleR.predicted.id.brcaAtlas",
+  celltype_col,
   fov_name = "fov",
   min_cells = 10,
   include_self_pairs = FALSE,

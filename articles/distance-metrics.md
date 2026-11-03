@@ -49,7 +49,7 @@ outside groups.
 
 ``` r
 
-cd <- calculate_composition_difference(inside_cells, outside_cells, seurat_obj, group_by = "cellType")
+cd <- calculate_composition_difference(inside_cells, outside_cells, seurat_obj, group_by = "first_type")
 ```
 
 - Range: 0 (identical composition) to ~2
@@ -77,7 +77,7 @@ results <- calculate_distance_profile(
   seurat_obj = seurat_obj,
   distance_thresholds = seq(10, 200, by = 10),
   metric = "all",
-  group_by = "cellType",
+  group_by = "first_type",
   inside_mode = "all"
 )
 
@@ -97,8 +97,8 @@ stGradient supports two modes for defining the “inside” cell group:
 ``` r
 
 # Compare both modes
-results_all <- calculate_distance_profile(seurat_obj, inside_mode = "all")
-results_dist <- calculate_distance_profile(seurat_obj, inside_mode = "distance")
+results_all <- calculate_distance_profile(seurat_obj, group_by = "first_type", inside_mode = "all")
+results_dist <- calculate_distance_profile(seurat_obj, group_by = "first_type", inside_mode = "distance")
 
 combined <- rbind(results_all$profile, results_dist$profile)
 ```

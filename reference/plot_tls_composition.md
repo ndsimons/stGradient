@@ -5,7 +5,7 @@ Stacked bar chart of cell type fractions within each called TLS.
 ## Usage
 
 ``` r
-plot_tls_composition(seurat_obj, celltype_col = "first_type")
+plot_tls_composition(seurat_obj, celltype_col)
 ```
 
 ## Arguments

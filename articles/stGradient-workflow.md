@@ -14,8 +14,8 @@ library(stGradient)
 
 seurat_obj <- load_xenium_seurat(
   rds_path = "path/to/sample.rds",
-  celltype_col = "singleR.predicted.id.brcaAtlas",
-  cancer_labels = c("Cancer LumA SC", "Cancer LumB SC", "Cancer Her2 SC")
+  celltype_col = "first_type",
+  cancer_labels = c("DCIS 1", "DCIS 2", "Invasive_Tumor", "Prolif_Invasive_Tumor")
 )
 ```
 
@@ -58,7 +58,7 @@ results <- calculate_distance_profile(
   seurat_obj = seurat_obj,
   distance_thresholds = seq(10, 200, by = 10),
   metric = "all",
-  group_by = "cellType",
+  group_by = "first_type",
   inside_mode = "all"
 )
 ```
@@ -95,7 +95,7 @@ pcf_summary <- calculate_pcf_outside_summary(
   polygons = auto_polygons,
   distance = 200,
   min_cells = 10,
-  celltype_col = "singleR.predicted.id.brcaAtlas",
+  celltype_col = "first_type",
   include_self_pairs = TRUE,
   ordered_pairs = FALSE
 )
@@ -105,7 +105,7 @@ plot_pcf_outside_heatmap(pcf_summary, midpoint = 1)
 env_list <- plot_pcf_outside_pair_envelopes(
   seurat_obj = seurat_obj,
   polygons = auto_polygons,
-  celltype_col = "singleR.predicted.id.brcaAtlas",
+  celltype_col = "first_type",
   min_cells = 10,
   nsim = 39,
   file = "pcf_outside_all_pairs.png"

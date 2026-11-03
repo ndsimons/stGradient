@@ -19,7 +19,7 @@ library(stGradient)
 qc_out <- qc_plot_xenium(
   obj = seurat_obj,
   roi_col = "inside_polygon",
-  celltype_col = "singleR.predicted.id.brcaAtlas",
+  celltype_col = "first_type",
   show = "both",
   zoom = TRUE,
   zoom_pad = 0.05,
@@ -43,7 +43,7 @@ region of interest:
 plot_roi_celltype_dist(
   df = qc_out$df,
   roi_col = "inside_polygon",
-  celltype_col = "singleR.predicted.id.brcaAtlas",
+  celltype_col = "first_type",
   metric = "proportion",
   labels = "both"
 )
@@ -52,7 +52,7 @@ plot_roi_celltype_dist(
 plot_roi_inout_celltype_stack(
   df = qc_out$df,
   roi_col = "inside_polygon",
-  celltype_col = "singleR.predicted.id.brcaAtlas",
+  celltype_col = "first_type",
   metric = "proportion"
 )
 
@@ -60,7 +60,7 @@ plot_roi_inout_celltype_stack(
 plot_roi_inout_celltype_dodge(
   df = qc_out$df,
   roi_col = "inside_polygon",
-  celltype_col = "singleR.predicted.id.brcaAtlas",
+  celltype_col = "first_type",
   metric = "count",
   top_n = 10,
   top_n_by = "inside"
@@ -134,7 +134,7 @@ Monte Carlo envelope curves for statistical significance:
 plot_pcf_outside_pair_envelopes(
   seurat_obj = seurat_obj,
   polygons = auto_polygons,
-  celltype_col = "singleR.predicted.id.brcaAtlas",
+  celltype_col = "first_type",
   nsim = 39,
   file = "pcf_envelopes.png"
 )

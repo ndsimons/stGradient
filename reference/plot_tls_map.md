@@ -9,7 +9,7 @@ ID, B cells within TLS in red, and TLS IDs labeled at their centroids.
 plot_tls_map(
   seurat_obj,
   fov_name = "fov",
-  celltype_col = "first_type",
+  celltype_col,
   b_types = c("B_Cells"),
   point_size = 0.5
 )

@@ -206,14 +206,12 @@ spatial layout:
 qc_out <- qc_plot_xenium(
   obj = seurat_obj,
   roi_col = "inside_polygon",
-  celltype_col = "singleR.predicted.id.brcaAtlas",
+  celltype_col = "first_type",
   show = "both",
   zoom = TRUE,
   zoom_pad = 0.05,
   grey_outside_roi = TRUE
 )
-
-qc_out$p
 ```
 
 ![](qc_out.png)
@@ -228,7 +226,7 @@ Examine cell type distributions inside vs. outside the region:
 plot_roi_celltype_dist(
   df = qc_out$df,
   roi_col = "inside_polygon",
-  celltype_col = "singleR.predicted.id.brcaAtlas",
+  celltype_col = "first_type",
   metric = "proportion"
 )
 ```
@@ -241,7 +239,7 @@ plot_roi_celltype_dist(
 plot_roi_inout_celltype_stack(
   df = qc_out$df,
   roi_col = "inside_polygon",
-  celltype_col = "singleR.predicted.id.brcaAtlas"
+  celltype_col = "first_type"
 )
 ```
 
@@ -253,7 +251,7 @@ plot_roi_inout_celltype_stack(
 plot_roi_inout_celltype_dodge(
   df = qc_out$df,
   roi_col = "inside_polygon",
-  celltype_col = "singleR.predicted.id.brcaAtlas",
+  celltype_col = "first_type",
   metric = "count",
   top_n = 10
 )

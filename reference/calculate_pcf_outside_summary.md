@@ -11,7 +11,7 @@ calculate_pcf_outside_summary(
   polygons,
   distance = 30,
   min_cells = 10,
-  celltype_col = "singleR.predicted.id.brcaAtlas",
+  celltype_col,
   fov_name = "fov",
   include_self_pairs = TRUE,
   ordered_pairs = FALSE,

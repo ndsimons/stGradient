@@ -95,7 +95,7 @@ visualizations organized by analysis stage.</p>
 <span><span class="va">qc_out</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/qc_plot_xenium.html">qc_plot_xenium</a></span><span class="op">(</span></span>
 <span>  obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
 <span>  roi_col <span class="op">=</span> <span class="st">"inside_polygon"</span>,</span>
-<span>  celltype_col <span class="op">=</span> <span class="st">"singleR.predicted.id.brcaAtlas"</span>,</span>
+<span>  celltype_col <span class="op">=</span> <span class="st">"first_type"</span>,</span>
 <span>  show <span class="op">=</span> <span class="st">"both"</span>,</span>
 <span>  zoom <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  zoom_pad <span class="op">=</span> <span class="fl">0.05</span>,</span>
@@ -117,7 +117,7 @@ region of interest:</p>
 <span><span class="fu"><a href="../reference/plot_roi_celltype_dist.html">plot_roi_celltype_dist</a></span><span class="op">(</span></span>
 <span>  df <span class="op">=</span> <span class="va">qc_out</span><span class="op">$</span><span class="va">df</span>,</span>
 <span>  roi_col <span class="op">=</span> <span class="st">"inside_polygon"</span>,</span>
-<span>  celltype_col <span class="op">=</span> <span class="st">"singleR.predicted.id.brcaAtlas"</span>,</span>
+<span>  celltype_col <span class="op">=</span> <span class="st">"first_type"</span>,</span>
 <span>  metric <span class="op">=</span> <span class="st">"proportion"</span>,</span>
 <span>  labels <span class="op">=</span> <span class="st">"both"</span></span>
 <span><span class="op">)</span></span>
@@ -126,7 +126,7 @@ region of interest:</p>
 <span><span class="fu"><a href="../reference/plot_roi_inout_celltype_stack.html">plot_roi_inout_celltype_stack</a></span><span class="op">(</span></span>
 <span>  df <span class="op">=</span> <span class="va">qc_out</span><span class="op">$</span><span class="va">df</span>,</span>
 <span>  roi_col <span class="op">=</span> <span class="st">"inside_polygon"</span>,</span>
-<span>  celltype_col <span class="op">=</span> <span class="st">"singleR.predicted.id.brcaAtlas"</span>,</span>
+<span>  celltype_col <span class="op">=</span> <span class="st">"first_type"</span>,</span>
 <span>  metric <span class="op">=</span> <span class="st">"proportion"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -134,7 +134,7 @@ region of interest:</p>
 <span><span class="fu"><a href="../reference/plot_roi_inout_celltype_dodge.html">plot_roi_inout_celltype_dodge</a></span><span class="op">(</span></span>
 <span>  df <span class="op">=</span> <span class="va">qc_out</span><span class="op">$</span><span class="va">df</span>,</span>
 <span>  roi_col <span class="op">=</span> <span class="st">"inside_polygon"</span>,</span>
-<span>  celltype_col <span class="op">=</span> <span class="st">"singleR.predicted.id.brcaAtlas"</span>,</span>
+<span>  celltype_col <span class="op">=</span> <span class="st">"first_type"</span>,</span>
 <span>  metric <span class="op">=</span> <span class="st">"count"</span>,</span>
 <span>  top_n <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  top_n_by <span class="op">=</span> <span class="st">"inside"</span></span>
@@ -198,7 +198,7 @@ region of interest:</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_pcf_outside_pair_envelopes.html">plot_pcf_outside_pair_envelopes</a></span><span class="op">(</span></span>
 <span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
 <span>  polygons <span class="op">=</span> <span class="va">auto_polygons</span>,</span>
-<span>  celltype_col <span class="op">=</span> <span class="st">"singleR.predicted.id.brcaAtlas"</span>,</span>
+<span>  celltype_col <span class="op">=</span> <span class="st">"first_type"</span>,</span>
 <span>  nsim <span class="op">=</span> <span class="fl">39</span>,</span>
 <span>  file <span class="op">=</span> <span class="st">"pcf_envelopes.png"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
