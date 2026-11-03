@@ -12,6 +12,6 @@ if (getRversion() >= "2.15.1") {
     "mean_prop", "sem", "sig_label", "estimate", "std_error", "coef",
     "direction", "gene", "bin_midpoint", "mean_expr",
     "n_B", "n_T", "n_DC", "n_total", "frac_B", "is_TLS", "has_matureDC",
-    "in_TLS", "TLS_id"
+    "in_TLS", "TLS_id", "eps", "minPts", "metric"
   ))
 }

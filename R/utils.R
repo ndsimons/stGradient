@@ -268,32 +268,42 @@ get_cancer_regions <- function(seurat_obj, fov_name = "fov") {
   polygons
 }
 
-#' Optimize DBSCAN Parameters via Silhouette Score
+#' Optimize DBSCAN Parameters
 #'
-#' Performs a grid search over eps and minPts parameter combinations for DBSCAN
-#' clustering of cancer cell coordinates, evaluating each combination using the
-#' average silhouette score. Returns a data frame of results ranked by silhouette
-#' score to help select optimal parameters for `add_dbscan_polygons()`.
+#' Performs a grid search over eps and minPts for DBSCAN clustering of cancer
+#' cell coordinates. Each combination is scored by average silhouette score and
+#' by the fraction of cancer cells labeled noise. Combinations with noise below
+#' `noise_pct` are turned into concave hull polygons and scored by coverage
+#' (fraction of cancer cells inside a polygon) and purity (fraction of cells
+#' inside polygons that are cancer), which are combined into an F-beta score.
 #'
 #' @param seurat_obj Seurat object with spatial coordinates
+#' @param noise_pct Maximum fraction of cancer cells labeled noise for a
+#'   combination to be scored by coverage and purity (default: 0.15)
+#' @param b Beta for the F-beta score. Values below 1 weight purity more than
+#'   coverage; values above 1 weight coverage more (default: 0.5)
+#' @param plot Print a heatmap of coverage and purity for the scored
+#'   combinations (default: TRUE)
 #' @param fov_name Name of the field of view (default: "fov")
 #' @param cancer_col Metadata column indicating cancer cells (default: "is_cancer")
 #' @param eps_range Numeric vector of eps values to test (default: seq(10, 100, by = 5))
 #' @param minPts_range Numeric vector of minPts values to test (default: c(10, 15, 20, 30, 50))
+#' @param concavity Concave hull concavity parameter used to build polygons (default: 2)
+#' @param length_threshold Edge length threshold for concave hull (default: 0)
 #' @param max_sample Maximum number of non-noise points to sample for silhouette
 #'   calculation to control memory usage (default: 46000)
 #' @param verbose Print progress messages (default: TRUE)
 #'
-#' @return A data frame with columns: eps, minPts, sil_score, n_clusters, noise_pct,
-#'   sorted by descending silhouette score. The best combination is in the first row.
+#' @return A data frame with columns eps, minPts, sil_score, n_clusters,
+#'   noise_pct, n_regions, cancer_covered, purity and fbeta, sorted by
+#'   descending fbeta (then silhouette score). The best combination is in the
+#'   first row. Combinations above `noise_pct` have `NA` coverage, purity and
+#'   fbeta. When `plot = TRUE`, the heatmap is also stored in `attr(result, "plot")`.
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' # Run parameter optimization
-#' results <- optimize_dbscan_params(seurat_obj)
-#'
-#' # View best parameters
+#' results <- optimize_dbscan_params(seurat_obj, noise_pct = 0.15, b = 0.5, plot = TRUE)
 #' head(results)
 #'
 #' # Use best parameters
@@ -302,10 +312,15 @@ get_cancer_regions <- function(seurat_obj, fov_name = "fov") {
 #' }
 #'
 optimize_dbscan_params <- function(seurat_obj,
+                                   noise_pct = 0.15,
+                                   b = 0.5,
+                                   plot = TRUE,
                                    fov_name = "fov",
                                    cancer_col = "is_cancer",
                                    eps_range = seq(10, 100, by = 5),
                                    minPts_range = c(10, 15, 20, 30, 50),
+                                   concavity = 2,
+                                   length_threshold = 0,
                                    max_sample = 46000,
                                    verbose = TRUE) {
 
@@ -315,29 +330,37 @@ optimize_dbscan_params <- function(seurat_obj,
   if (!requireNamespace("dbscan", quietly = TRUE)) {
     stop("Package 'dbscan' is required. Install with: install.packages('dbscan')")
   }
+  if (!is.numeric(noise_pct) || length(noise_pct) != 1 || noise_pct < 0 || noise_pct > 1) {
+    stop("`noise_pct` must be a single number between 0 and 1")
+  }
+  if (!is.numeric(b) || length(b) != 1 || b <= 0) {
+    stop("`b` must be a single positive number")
+  }
 
- # Get tissue coordinates
   coords <- get_cell_coords(seurat_obj, fov_name)
 
   if (!cancer_col %in% colnames(seurat_obj@meta.data)) {
     stop(paste0("Column '", cancer_col, "' not found in metadata"))
   }
 
-  coords$is_cancer <- seurat_obj@meta.data[coords$cell_id, cancer_col]
-  cancer_coords <- coords %>% dplyr::filter(is_cancer == TRUE)
+  coords$is_cancer <- as.logical(seurat_obj@meta.data[coords$cell_id, cancer_col])
+  coords$is_cancer[is.na(coords$is_cancer)] <- FALSE
+  cancer_coords <- coords[coords$is_cancer, , drop = FALSE]
 
   if (nrow(cancer_coords) == 0) {
     stop("No cancer cells found in metadata")
   }
 
   xy <- cancer_coords[, c("x", "y")]
-
-  # Build parameter grid
+  all_pts <- sf::st_as_sf(coords, coords = c("x", "y"))
 
   results <- expand.grid(eps = eps_range, minPts = minPts_range)
   results$sil_score <- NA_real_
   results$n_clusters <- NA_integer_
   results$noise_pct <- NA_real_
+  results$n_regions <- NA_integer_
+  results$cancer_covered <- NA_real_
+  results$purity <- NA_real_
 
   n_combos <- nrow(results)
   if (verbose) message(sprintf("Testing %d parameter combinations...", n_combos))
@@ -364,24 +387,61 @@ optimize_dbscan_params <- function(seurat_obj,
       sil <- cluster::silhouette(cl$cluster[non_noise], stats::dist(xy[non_noise, ]))
       results$sil_score[i] <- mean(sil[, 3])
     }
-  }
 
-  # Sort by silhouette score descending
-  results <- results[order(-results$sil_score, na.last = TRUE), ]
-  rownames(results) <- NULL
-
-  if (verbose) {
-    best <- results[1, ]
-    if (!is.na(best$sil_score)) {
-      message(sprintf("Best: eps=%.0f, minPts=%d (silhouette=%.3f, %d clusters, %.1f%% noise)",
-                      best$eps, best$minPts, best$sil_score, best$n_clusters,
-                      best$noise_pct * 100))
-    } else {
-      message("No valid silhouette scores found. Try adjusting parameter ranges.")
+    # Coverage and purity of the resulting polygons for low-noise combinations
+    if (max(cl$cluster) >= 1 && results$noise_pct[i] < noise_pct) {
+      polys <- lapply(sort(unique(cl$cluster[cl$cluster > 0])), function(k) {
+        hull <- concaveman::concaveman(as.matrix(xy[cl$cluster == k, ]),
+                                       concavity = concavity,
+                                       length_threshold = length_threshold)
+        sf::st_polygon(list(hull))
+      })
+      region <- sf::st_union(sf::st_make_valid(sf::st_sfc(polys)))
+      inside <- lengths(sf::st_intersects(all_pts, region)) > 0
+      results$n_regions[i] <- length(polys)
+      results$cancer_covered[i] <- mean(inside[coords$is_cancer])
+      results$purity[i] <- if (any(inside)) mean(coords$is_cancer[inside]) else NA_real_
     }
   }
 
-  return(results)
+  results$fbeta <- with(results, (1 + b^2) * purity * cancer_covered /
+                          (b^2 * purity + cancer_covered))
+
+  results <- results[order(-results$fbeta, -results$sil_score, na.last = TRUE), ]
+  rownames(results) <- NULL
+
+  scored <- results[!is.na(results$cancer_covered), , drop = FALSE]
+
+  if (verbose) {
+    if (nrow(scored) > 0) {
+      best <- results[1, ]
+      message(sprintf(
+        "Best: eps=%.0f, minPts=%d (fbeta=%.3f, coverage=%.1f%%, purity=%.1f%%, %.1f%% noise)",
+        best$eps, best$minPts, best$fbeta, best$cancer_covered * 100,
+        best$purity * 100, best$noise_pct * 100))
+    } else {
+      message(sprintf(
+        "No combinations had noise below %.0f%%. Try a larger noise_pct or different parameter ranges.",
+        noise_pct * 100))
+    }
+  }
+
+  if (isTRUE(plot) && nrow(scored) > 0) {
+    long <- tidyr::pivot_longer(scored, c("cancer_covered", "purity"),
+                                names_to = "metric", values_to = "value")
+    p <- ggplot2::ggplot(long, ggplot2::aes(factor(eps), factor(minPts), fill = value)) +
+      ggplot2::geom_tile(colour = "white") +
+      ggplot2::geom_text(ggplot2::aes(label = sprintf("%.2f", value)), size = 2.8) +
+      ggplot2::facet_wrap(~ metric, ncol = 1) +
+      ggplot2::scale_fill_viridis_c(labels = function(x) sprintf("%.0f%%", 100 * x)) +
+      ggplot2::labs(x = "eps", y = "minPts", fill = NULL) +
+      ggplot2::theme_minimal() +
+      ggplot2::theme(panel.grid = ggplot2::element_blank())
+    print(p)
+    attr(results, "plot") <- p
+  }
+
+  results
 }
 
 #' Plot DBSCAN-based cancer region polygons

@@ -105,51 +105,13 @@ table(seurat_obj$is_cancer)
 
 ```{r optimize-dbscan}
 # max_sample caps the silhouette distance matrix (n^2 memory) for large samples
-dbscan_results <- optimize_dbscan_params(seurat_obj, fov_name = params$fov_name,
+dbscan_results <- optimize_dbscan_params(seurat_obj, noise_pct = 0.15, b = 0.5, plot = TRUE,
+                                         fov_name = params$fov_name,
                                          max_sample = params$dbscan_max_sample)
-head(dbscan_results)
-```
+head(dbscan_results, 10)
 
-#### Evaluating Polygon Coverage and Purity
-
-```{r optimize-dbscan-coverage}
-eval_polys <- function(obj, eps, minPts, fov = params$fov_name) {
-  polys <- plot_dbscan_polygons(obj, fov = fov, eps = eps, minPts = minPts, plot = FALSE)
-  if (is.null(polys)) return(NULL)
-  coords <- Seurat::GetTissueCoordinates(obj, image = fov)
-  coords$is_cancer <- as.logical(obj$is_cancer)
-  pts    <- sf::st_as_sf(coords, coords = c("x", "y"))
-  region <- sf::st_union(sf::st_make_valid(polys))
-  inside <- lengths(sf::st_intersects(pts, region)) > 0
-  data.frame(eps = eps, minPts = minPts, n_regions = nrow(polys),
-             cancer_covered = mean(inside[coords$is_cancer]),
-             purity         = mean(coords$is_cancer[inside]))
-}
-
-cand <- subset(dbscan_results, noise_pct < 0.15)[, c("eps", "minPts")]
-scores <- do.call(rbind, Map(eval_polys, list(seurat_obj), cand$eps, cand$minPts))
-
-if (!is.null(scores) && nrow(scores) > 0) {
-  scores <- scores[order(-scores$cancer_covered, -scores$purity), ]
-  scores$label <- paste0(scores$eps, "/", scores$minPts)
-  b <- 0.5
-  scores$fbeta <- with(scores, (1 + b^2) * purity * cancer_covered /
-                         (b^2 * purity + cancer_covered))
-  print(head(scores, 10))
-
-  long <- pivot_longer(scores, c(cancer_covered, purity),
-                       names_to = "metric", values_to = "value")
-
-  p_cov <- ggplot(long, aes(factor(eps), factor(minPts), fill = value)) +
-    geom_tile(colour = "white") +
-    geom_text(aes(label = sprintf("%.2f", value)), size = 2.8) +
-    facet_wrap(~ metric, ncol = 1) +
-    scale_fill_viridis_c(labels = scales::percent) +
-    labs(x = "eps", y = "minPts", fill = NULL) +
-    theme_minimal() +
-    theme(panel.grid = element_blank())
-
-  save_fig(p_cov, "dbscan_coverage_purity.png", width = 8, height = 7)
+if (!is.null(attr(dbscan_results, "plot"))) {
+  save_fig(attr(dbscan_results, "plot"), "coverage_vs_purity.png", width = 8, height = 7)
 } else {
   message("No DBSCAN candidates with noise_pct < 0.15; skipping coverage/purity plot.")
 }
