@@ -29,6 +29,8 @@ navbar:
           href: articles/pcf-analysis.html
         - text: Gene-Distance Analysis
           href: articles/gene-distance-analysis.html
+        - text: TLS Analysis
+          href: articles/tls-analysis.html
         - text: "---"
         - text: Plotting
         - text: Visualization
@@ -46,6 +48,7 @@ articles:
       - distance-metrics
       - pcf-analysis
       - gene-distance-analysis
+      - tls-analysis
   - title: Visualization
     contents:
       - visualization
@@ -91,6 +94,19 @@ reference:
     contents:
       - find_distance_associated_genes
       - plot_distance_genes
+
+  - title: TLS Analysis
+    desc: Detect tertiary lymphoid structures and score a TLS gene signature
+    contents:
+      - call_tls
+      - get_tls_summary
+      - tls_signature_genes
+      - add_tls_score
+      - summarize_tls_score
+      - plot_tls_map
+      - plot_tls_composition
+      - plot_tls_score
+      - plot_tls_score_comparison
 
   - title: Visualization
     desc: QC plots, ROI composition, and distance profile visualization

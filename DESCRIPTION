@@ -37,6 +37,7 @@ Suggests:
     Matrix,
     spatstat.geom,
     spatstat.explore,
+    ggbeeswarm,
     knitr,
     rmarkdown
 VignetteBuilder: knitr
