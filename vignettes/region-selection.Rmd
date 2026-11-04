@@ -93,6 +93,7 @@ head(results)
 best <- results[1, ]
 seurat_obj <- add_dbscan_polygons(seurat_obj, eps = best$eps, minPts = best$minPts)
 ```
+![](optimize_dbscan_params.png)
 
 The returned data frame has one row per `eps`/`minPts` combination with `sil_score`, `n_clusters`, `noise_pct`, `n_regions`, `cancer_covered`, `purity` and `fbeta`. Combinations above the `noise_pct` cutoff have `NA` for the coverage, purity and `fbeta` columns. The heatmap is also stored in `attr(results, "plot")` for saving.
 
