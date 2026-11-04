@@ -102,10 +102,18 @@ step, see the topic-specific vignettes linked below.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/launch_stGradient.html">launch_stGradient</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_polygon_membership.html">add_polygon_membership</a></span><span class="op">(</span><span class="va">seurat_obj</span>, <span class="va">drawn_polygons</span><span class="op">)</span></span></code></pre></div>
-<p>Option B — Automated (DBSCAN):</p>
+<p>Option B — Automated (DBSCAN). Choose
+<code>eps</code>/<code>minPts</code> by coverage and purity, then build
+the ROI polygons:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_dbscan_polygons.html">add_dbscan_polygons</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span></span>
-<span><span class="va">auto_polygons</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_cancer_regions.html">get_cancer_regions</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">dbscan_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/optimize_dbscan_params.html">optimize_dbscan_params</a></span><span class="op">(</span><span class="va">seurat_obj</span>, noise_pct <span class="op">=</span> <span class="fl">0.15</span>, b <span class="op">=</span> <span class="fl">0.5</span>, plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">best</span> <span class="op">&lt;-</span> <span class="va">dbscan_res</span><span class="op">[</span><span class="fl">1</span>, <span class="op">]</span></span>
+<span></span>
+<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_dbscan_polygons.html">add_dbscan_polygons</a></span><span class="op">(</span><span class="va">seurat_obj</span>, eps <span class="op">=</span> <span class="va">best</span><span class="op">$</span><span class="va">eps</span>, minPts <span class="op">=</span> <span class="va">best</span><span class="op">$</span><span class="va">minPts</span><span class="op">)</span></span>
+<span><span class="va">auto_polygons</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_cancer_regions.html">get_cancer_regions</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Inspect the detected ROIs</span></span>
+<span><span class="fu"><a href="../reference/plot_dbscan_polygons.html">plot_dbscan_polygons</a></span><span class="op">(</span><span class="va">seurat_obj</span>, eps <span class="op">=</span> <span class="va">best</span><span class="op">$</span><span class="va">eps</span>, minPts <span class="op">=</span> <span class="va">best</span><span class="op">$</span><span class="va">minPts</span><span class="op">)</span></span></code></pre></div>
 <p>See: <a href="region-selection.html">Region Selection</a></p>
 </div>
 <div class="section level2">
@@ -138,7 +146,19 @@ step, see the topic-specific vignettes linked below.</p>
 <h2 id="step-6-visualize">Step 6: Visualize<a class="anchor" aria-label="anchor" href="#step-6-visualize"></a>
 </h2>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_all_metrics.html">plot_all_metrics</a></span><span class="op">(</span><span class="va">results</span><span class="op">$</span><span class="va">profile</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="co"># Spatial QC: ROI membership and cell types</span></span>
+<span><span class="va">qc_out</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/qc_plot_xenium.html">qc_plot_xenium</a></span><span class="op">(</span></span>
+<span>  obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
+<span>  roi_col <span class="op">=</span> <span class="st">"inside_polygon"</span>,</span>
+<span>  celltype_col <span class="op">=</span> <span class="st">"first_type"</span>,</span>
+<span>  show <span class="op">=</span> <span class="st">"both"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Cell type composition inside vs outside the ROIs</span></span>
+<span><span class="fu"><a href="../reference/plot_roi_inout_celltype_stack.html">plot_roi_inout_celltype_stack</a></span><span class="op">(</span><span class="va">qc_out</span><span class="op">$</span><span class="va">df</span>, roi_col <span class="op">=</span> <span class="st">"inside_polygon"</span>, celltype_col <span class="op">=</span> <span class="st">"first_type"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Distance profile plots</span></span>
+<span><span class="fu"><a href="../reference/plot_all_metrics.html">plot_all_metrics</a></span><span class="op">(</span><span class="va">results</span><span class="op">$</span><span class="va">profile</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_celltype_heatmap.html">plot_celltype_heatmap</a></span><span class="op">(</span><span class="va">results</span><span class="op">$</span><span class="va">celltype_contributions</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_celltype_proportions.html">plot_celltype_proportions</a></span><span class="op">(</span><span class="va">results</span><span class="op">$</span><span class="va">celltype_contributions</span>, top_n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
 <p>See: <a href="visualization.html">Visualization</a></p>

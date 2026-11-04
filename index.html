@@ -115,6 +115,10 @@
 <td>Model gene expression as a function of distance from boundaries</td>
 </tr>
 <tr>
+<td><a href="articles/tls-analysis.html">TLS Analysis</a></td>
+<td>Call tertiary lymphoid structures and score a TLS gene signature</td>
+</tr>
+<tr>
 <td><a href="articles/visualization.html">Visualization</a></td>
 <td>QC plots, ROI composition, distance profile plots</td>
 </tr>
@@ -127,30 +131,58 @@
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">stGradient</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Load a Xenium Seurat object</span></span>
+<span><span class="co"># --- Loading &amp; Setup ---</span></span>
 <span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/load_xenium_seurat.html">load_xenium_seurat</a></span><span class="op">(</span></span>
 <span>  rds_path <span class="op">=</span> <span class="st">"path/to/sample.rds"</span>,</span>
 <span>  celltype_col <span class="op">=</span> <span class="st">"first_type"</span>,</span>
 <span>  cancer_labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"DCIS 1"</span>, <span class="st">"DCIS 2"</span>, <span class="st">"Invasive_Tumor"</span>, <span class="st">"Prolif_Invasive_Tumor"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
+<span><span class="co"># Or draw ROIs interactively: launch_stGradient()</span></span>
 <span></span>
-<span><span class="co"># Automatically detect ROIs with DBSCAN</span></span>
-<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/add_dbscan_polygons.html">add_dbscan_polygons</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span></span>
+<span><span class="co"># --- Region Selection ---</span></span>
+<span><span class="co"># Pick DBSCAN parameters by coverage/purity, then build ROI polygons</span></span>
+<span><span class="va">dbscan_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/optimize_dbscan_params.html">optimize_dbscan_params</a></span><span class="op">(</span><span class="va">seurat_obj</span>, noise_pct <span class="op">=</span> <span class="fl">0.15</span>, b <span class="op">=</span> <span class="fl">0.5</span>, plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/add_dbscan_polygons.html">add_dbscan_polygons</a></span><span class="op">(</span><span class="va">seurat_obj</span>, eps <span class="op">=</span> <span class="va">dbscan_res</span><span class="op">$</span><span class="va">eps</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, minPts <span class="op">=</span> <span class="va">dbscan_res</span><span class="op">$</span><span class="va">minPts</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">auto_polygons</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_cancer_regions.html">get_cancer_regions</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/plot_dbscan_polygons.html">plot_dbscan_polygons</a></span><span class="op">(</span><span class="va">seurat_obj</span>, eps <span class="op">=</span> <span class="va">dbscan_res</span><span class="op">$</span><span class="va">eps</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, minPts <span class="op">=</span> <span class="va">dbscan_res</span><span class="op">$</span><span class="va">minPts</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Calculate boundary distances</span></span>
+<span><span class="co"># --- Distance Metrics ---</span></span>
 <span><span class="va">seurat_obj</span><span class="op">$</span><span class="va">boundary_distance</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculate_boundary_distances.html">calculate_boundary_distances</a></span><span class="op">(</span><span class="va">seurat_obj</span>, <span class="va">auto_polygons</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Calculate distance-based separation metrics</span></span>
 <span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculate_distance_profile.html">calculate_distance_profile</a></span><span class="op">(</span></span>
 <span>  <span class="va">seurat_obj</span>,</span>
 <span>  distance_thresholds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">200</span>, by <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>,</span>
 <span>  metric <span class="op">=</span> <span class="st">"all"</span>,</span>
 <span>  group_by <span class="op">=</span> <span class="st">"first_type"</span></span>
 <span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/find_critical_distance.html">find_critical_distance</a></span><span class="op">(</span><span class="va">results</span><span class="op">$</span><span class="va">profile</span>, <span class="st">"transcriptomic_distance"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Visualize</span></span>
-<span><span class="fu"><a href="reference/plot_all_metrics.html">plot_all_metrics</a></span><span class="op">(</span><span class="va">results</span><span class="op">$</span><span class="va">profile</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># --- PCF Analysis ---</span></span>
+<span><span class="va">pcf_summary</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculate_pcf_outside_summary.html">calculate_pcf_outside_summary</a></span><span class="op">(</span></span>
+<span>  <span class="va">seurat_obj</span>, <span class="va">auto_polygons</span>,</span>
+<span>  distance <span class="op">=</span> <span class="fl">200</span>,</span>
+<span>  celltype_col <span class="op">=</span> <span class="st">"first_type"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/plot_pcf_outside_heatmap.html">plot_pcf_outside_heatmap</a></span><span class="op">(</span><span class="va">pcf_summary</span>, midpoint <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># --- Gene-Distance Analysis ---</span></span>
+<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compute_distance_from_boundary.html">compute_distance_from_boundary</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span></span>
+<span><span class="va">dist_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/find_distance_associated_genes.html">find_distance_associated_genes</a></span><span class="op">(</span><span class="va">seurat_obj</span>, assay <span class="op">=</span> <span class="st">"Xenium"</span>, focus <span class="op">=</span> <span class="st">"peritumoral"</span><span class="op">)</span></span>
+<span><span class="va">dist_plots</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/plot_distance_genes.html">plot_distance_genes</a></span><span class="op">(</span><span class="va">dist_res</span>, top_n <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># --- TLS Analysis ---</span></span>
+<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/call_tls.html">call_tls</a></span><span class="op">(</span></span>
+<span>  <span class="va">seurat_obj</span>,</span>
+<span>  celltype_col <span class="op">=</span> <span class="st">"first_type"</span>,</span>
+<span>  b_types <span class="op">=</span> <span class="st">"B_Cells"</span>,</span>
+<span>  t_types <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD4+_T_Cells"</span>, <span class="st">"CD8+_T_Cells"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/add_tls_score.html">add_tls_score</a></span><span class="op">(</span><span class="va">seurat_obj</span>, assay <span class="op">=</span> <span class="st">"Xenium"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/plot_tls_score.html">plot_tls_score</a></span><span class="op">(</span><span class="va">seurat_obj</span>, highlight <span class="op">=</span> <span class="st">"outline"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># --- Visualization ---</span></span>
+<span><span class="va">qc_out</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/qc_plot_xenium.html">qc_plot_xenium</a></span><span class="op">(</span><span class="va">seurat_obj</span>, roi_col <span class="op">=</span> <span class="st">"inside_polygon"</span>, celltype_col <span class="op">=</span> <span class="st">"first_type"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/plot_all_metrics.html">plot_all_metrics</a></span><span class="op">(</span><span class="va">results</span><span class="op">$</span><span class="va">profile</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/plot_celltype_proportions.html">plot_celltype_proportions</a></span><span class="op">(</span><span class="va">results</span><span class="op">$</span><span class="va">celltype_contributions</span>, top_n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
