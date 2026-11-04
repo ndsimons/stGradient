@@ -161,8 +161,6 @@ qc_out <- qc_plot_xenium(
   zoom_pad = 0.05,
   grey_outside_roi = TRUE
 )
-
-save_fig(qc_out$p, "qc_out.png", width = 11, height = 5.9)
 ```
 
 ### ROI Composition Plots

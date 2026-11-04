@@ -150,7 +150,6 @@ qc_out <- qc_plot_xenium(
   grey_outside_roi = TRUE
 )
 ```
-![](qc_out.png)
 
 ### ROI Composition Plots
 
