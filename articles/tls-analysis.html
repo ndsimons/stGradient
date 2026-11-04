@@ -123,10 +123,12 @@ candidate aggregates, including those that failed the TLS criteria.</p>
 </h2>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Spatial map: TLS colored by ID, B cells in red</span></span>
-<span><span class="fu"><a href="../reference/plot_tls_map.html">plot_tls_map</a></span><span class="op">(</span><span class="va">seurat_obj</span>, celltype_col <span class="op">=</span> <span class="st">"first_type"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Cell type composition of each TLS</span></span>
+<span><span class="fu"><a href="../reference/plot_tls_map.html">plot_tls_map</a></span><span class="op">(</span><span class="va">seurat_obj</span>, celltype_col <span class="op">=</span> <span class="st">"first_type"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="plot_tls_map.png"></p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Cell type composition of each TLS</span></span>
 <span><span class="fu"><a href="../reference/plot_tls_composition.html">plot_tls_composition</a></span><span class="op">(</span><span class="va">seurat_obj</span>, celltype_col <span class="op">=</span> <span class="st">"first_type"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="plot_tls_composition.png"></p>
 </div>
 <div class="section level2">
 <h2 id="step-3-score-a-tls-gene-signature">Step 3: Score a TLS Gene Signature<a class="anchor" aria-label="anchor" href="#step-3-score-a-tls-gene-signature"></a>
@@ -135,7 +137,7 @@ candidate aggregates, including those that failed the TLS criteria.</p>
 <code><a href="https://satijalab.org/seurat/reference/AddModuleScore.html" class="external-link">Seurat::AddModuleScore()</a></code> using
 <code><a href="../reference/tls_signature_genes.html">tls_signature_genes()</a></code> by default. Genes missing from the
 panel are dropped.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/tls_signature_genes.html">tls_signature_genes</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_tls_score.html">add_tls_score</a></span><span class="op">(</span><span class="va">seurat_obj</span>, assay <span class="op">=</span> <span class="st">"Xenium"</span><span class="op">)</span></span></code></pre></div>
@@ -145,7 +147,7 @@ panel are dropped.</p>
 <div class="section level2">
 <h2 id="step-4-visualize-the-signature-score">Step 4: Visualize the Signature Score<a class="anchor" aria-label="anchor" href="#step-4-visualize-the-signature-score"></a>
 </h2>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Score with white perimeter outlines around each TLS</span></span>
 <span><span class="fu"><a href="../reference/plot_tls_score.html">plot_tls_score</a></span><span class="op">(</span><span class="va">seurat_obj</span>, highlight <span class="op">=</span> <span class="st">"outline"</span><span class="op">)</span></span>
 <span></span>
@@ -159,7 +161,7 @@ panel are dropped.</p>
 <div class="section level2">
 <h2 id="step-5-check-that-called-tls-score-higher">Step 5: Check That Called TLS Score Higher<a class="anchor" aria-label="anchor" href="#step-5-check-that-called-tls-score-higher"></a>
 </h2>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tls_stats</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarize_tls_score.html">summarize_tls_score</a></span><span class="op">(</span><span class="va">seurat_obj</span><span class="op">)</span></span>
 <span><span class="va">tls_stats</span><span class="op">$</span><span class="va">by_status</span>   <span class="co"># in vs. outside TLS</span></span>
 <span><span class="va">tls_stats</span><span class="op">$</span><span class="va">by_tls</span>      <span class="co"># per TLS, lowest mean score first</span></span>

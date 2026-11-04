@@ -49,10 +49,17 @@ all candidate aggregates, including those that failed the TLS criteria.
 
 # Spatial map: TLS colored by ID, B cells in red
 plot_tls_map(seurat_obj, celltype_col = "first_type")
+```
+
+![](plot_tls_map.png)
+
+``` r
 
 # Cell type composition of each TLS
 plot_tls_composition(seurat_obj, celltype_col = "first_type")
 ```
+
+![](plot_tls_composition.png)
 
 ## Step 3: Score a TLS Gene Signature
 
