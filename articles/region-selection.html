@@ -203,6 +203,7 @@ the best combination is in the first row:</p>
 <span><span class="co"># Use the best parameters</span></span>
 <span><span class="va">best</span> <span class="op">&lt;-</span> <span class="va">results</span><span class="op">[</span><span class="fl">1</span>, <span class="op">]</span></span>
 <span><span class="va">seurat_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_dbscan_polygons.html">add_dbscan_polygons</a></span><span class="op">(</span><span class="va">seurat_obj</span>, eps <span class="op">=</span> <span class="va">best</span><span class="op">$</span><span class="va">eps</span>, minPts <span class="op">=</span> <span class="va">best</span><span class="op">$</span><span class="va">minPts</span><span class="op">)</span></span></code></pre></div>
+<p><img src="optimize_dbscan_params.png"></p>
 <p>The returned data frame has one row per
 <code>eps</code>/<code>minPts</code> combination with
 <code>sil_score</code>, <code>n_clusters</code>, <code>noise_pct</code>,
