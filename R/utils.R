@@ -282,8 +282,9 @@ get_cancer_regions <- function(seurat_obj, fov_name = "fov") {
 #'   combination to be scored by coverage and purity (default: 0.15)
 #' @param b Beta for the F-beta score. Values below 1 weight purity more than
 #'   coverage; values above 1 weight coverage more (default: 0.5)
-#' @param plot Print a heatmap of coverage and purity for the scored
-#'   combinations (default: TRUE)
+#' @param plot Print heatmaps of coverage, purity and F-beta for the scored
+#'   combinations, with the best combination outlined in red on the F-beta
+#'   heatmap (default: TRUE)
 #' @param fov_name Name of the field of view (default: "fov")
 #' @param cancer_col Metadata column indicating cancer cells (default: "is_cancer")
 #' @param eps_range Numeric vector of eps values to test (default: seq(10, 100, by = 5))
@@ -427,10 +428,18 @@ optimize_dbscan_params <- function(seurat_obj,
   }
 
   if (isTRUE(plot) && nrow(scored) > 0) {
-    long <- tidyr::pivot_longer(scored, c("cancer_covered", "purity"),
+    long <- tidyr::pivot_longer(scored, c("cancer_covered", "purity", "fbeta"),
                                 names_to = "metric", values_to = "value")
+    fbeta_label <- sprintf("F-beta (b = %g)", b)
+    long$metric <- factor(long$metric,
+                          levels = c("cancer_covered", "purity", "fbeta"),
+                          labels = c("Coverage", "Purity", fbeta_label))
+    best <- scored[1, ]
+    best_tile <- long[long$metric == fbeta_label & long$eps == best$eps &
+                        long$minPts == best$minPts, , drop = FALSE]
     p <- ggplot2::ggplot(long, ggplot2::aes(factor(eps), factor(minPts), fill = value)) +
       ggplot2::geom_tile(colour = "white") +
+      ggplot2::geom_tile(data = best_tile, fill = NA, colour = "red", linewidth = 1) +
       ggplot2::geom_text(ggplot2::aes(label = sprintf("%.2f", value)), size = 2.8) +
       ggplot2::facet_wrap(~ metric, ncol = 1) +
       ggplot2::scale_fill_viridis_c(labels = function(x) sprintf("%.0f%%", 100 * x)) +

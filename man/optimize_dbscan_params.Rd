@@ -28,8 +28,9 @@ combination to be scored by coverage and purity (default: 0.15)}
 \item{b}{Beta for the F-beta score. Values below 1 weight purity more than
 coverage; values above 1 weight coverage more (default: 0.5)}
 
-\item{plot}{Print a heatmap of coverage and purity for the scored
-combinations (default: TRUE)}
+\item{plot}{Print heatmaps of coverage, purity and F-beta for the scored
+combinations, with the best combination outlined in red on the F-beta
+heatmap (default: TRUE)}
 
 \item{fov_name}{Name of the field of view (default: "fov")}
 
