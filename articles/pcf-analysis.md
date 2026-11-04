@@ -104,7 +104,9 @@ For focused analysis of specific cell-type pairs:
 plot_pcf_pair_gg(env_list, "TypeA", "TypeB")
 ```
 
-![](pcfSinglePlot.png)
+![](pcf_outside_all_pairs_CD8%2B_T_Cells_vs_Macrophages_1.png)
+
+![](pcf_outside_all_pairs_CD8%2B_T_Cells_vs_Stromal.png)
 
 ## Notes
 
