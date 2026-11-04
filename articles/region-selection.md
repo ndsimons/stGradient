@@ -186,8 +186,6 @@ qc_out <- qc_plot_xenium(
 )
 ```
 
-![](qc_out.png)
-
 ### ROI Composition Plots
 
 Examine cell type distributions inside vs. outside the region:
