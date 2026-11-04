@@ -120,30 +120,51 @@ plot_celltype_heatmap <- function(celltype_contributions) {
 
 #' Plot Cell Type Proportions
 #'
-#' Shows proportion trajectories for top cell types
+#' Shows proportion trajectories for the top cell types, or for cell types
+#' chosen by the user.
 #'
 #' @param celltype_contributions Data frame from calculate_distance_profile
-#' @param top_n Number of top cell types to show
+#' @param top_n Number of top cell types to show. Ignored when `celltypes` is
+#'   supplied.
 #' @param span Loess smoothing span
 #' @param level Confidence level for the loess ribbon
 #' @param ncol Number of facet columns. If `NULL` (default), chosen automatically
 #'   by `ggplot2::facet_wrap()`.
+#' @param celltypes Optional character vector of cell types to plot, shown in
+#'   the order given. If `NULL` (default), the `top_n` cell types with the
+#'   largest contribution at the peak distance are shown.
 #' @return ggplot object
 #' @importFrom magrittr %>%
 #' @export
 plot_celltype_proportions <- function(celltype_contributions, top_n = 5,
-                                      span = 0.3, level = 0.95, ncol = NULL) {
-    total_by_distance <- celltype_contributions %>%
-        dplyr::group_by(distance) %>%
-        dplyr::summarise(total_contrib = sum(contribution), .groups = "drop")
-    peak_distance <- total_by_distance$distance[which.max(total_by_distance$total_contrib)]
-    
-    top_celltypes <- celltype_contributions %>%
-        dplyr::filter(distance == peak_distance) %>%
-        dplyr::arrange(dplyr::desc(contribution)) %>%
-        dplyr::slice(1:top_n) %>%
-        dplyr::pull(celltype)
-    
+                                      span = 0.3, level = 0.95, ncol = NULL,
+                                      celltypes = NULL) {
+    if (!is.null(celltypes)) {
+        available <- unique(as.character(celltype_contributions$celltype))
+        missing_types <- setdiff(celltypes, available)
+        if (length(missing_types) > 0) {
+            warning("Cell types not found in celltype_contributions: ",
+                    paste(missing_types, collapse = ", "), call. = FALSE)
+        }
+        top_celltypes <- unique(intersect(celltypes, available))
+        if (length(top_celltypes) == 0) {
+            stop("None of the requested `celltypes` are in celltype_contributions.", call. = FALSE)
+        }
+        subtitle <- "Selected cell types"
+    } else {
+        total_by_distance <- celltype_contributions %>%
+            dplyr::group_by(distance) %>%
+            dplyr::summarise(total_contrib = sum(contribution), .groups = "drop")
+        peak_distance <- total_by_distance$distance[which.max(total_by_distance$total_contrib)]
+
+        top_celltypes <- celltype_contributions %>%
+            dplyr::filter(distance == peak_distance) %>%
+            dplyr::arrange(dplyr::desc(contribution)) %>%
+            dplyr::slice(1:top_n) %>%
+            dplyr::pull(celltype)
+        subtitle <- paste("Top", top_n, "most different cell types")
+    }
+
     celltype_props_long <- celltype_contributions %>%
         dplyr::filter(celltype %in% top_celltypes) %>%
         tidyr::pivot_longer(cols = c(inside_prop, outside_prop),
@@ -151,6 +172,11 @@ plot_celltype_proportions <- function(celltype_contributions, top_n = 5,
         dplyr::mutate(region = ifelse(region == "inside_prop", "Inside", "Outside"),
                       signed_distance = ifelse(region == "Inside", -distance, distance)) %>%
         dplyr::arrange(celltype, signed_distance)
+
+    # Facet in the order the user listed the cell types
+    if (!is.null(celltypes)) {
+        celltype_props_long$celltype <- factor(celltype_props_long$celltype, levels = top_celltypes)
+    }
     
     max_dist <- max(abs(celltype_props_long$signed_distance))
     
@@ -167,7 +193,7 @@ plot_celltype_proportions <- function(celltype_contributions, top_n = 5,
         ggplot2::scale_color_manual(values = c(Inside = "coral", Outside = "#A7C7E7")) +
         ggplot2::scale_x_continuous(limits = c(-max_dist, max_dist)) +
         ggplot2::labs(title = "Cell Type Proportions: Inside vs Outside",
-                      subtitle = paste("Top", top_n, "most different cell types"),
+                      subtitle = subtitle,
                       x = "Distance from boundary (\u03bcm)\n\u2190 inside tumor | outside tumor \u2192",
                       y = "Proportion") +
         ggplot2::theme_minimal() +
