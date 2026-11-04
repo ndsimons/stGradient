@@ -186,15 +186,16 @@ coverage but pulls in more non-cancer cells, lowering purity.
 <p><code><a href="../reference/optimize_dbscan_params.html">optimize_dbscan_params()</a></code> runs all three steps in one
 call. <code>noise_pct</code> sets the maximum fraction of cancer cells
 labeled noise for a combination to be scored, <code>b</code> sets the
-F-beta weighting, and <code>plot = TRUE</code> draws the coverage and
-purity heatmap shown above. Results are sorted by <code>fbeta</code>, so
-the best combination is in the first row:</p>
+F-beta weighting, and <code>plot = TRUE</code> draws coverage, purity
+and F-beta heatmaps, with the best combination outlined in red on the
+F-beta heatmap. Results are sorted by <code>fbeta</code>, so the best
+combination is in the first row:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/optimize_dbscan_params.html">optimize_dbscan_params</a></span><span class="op">(</span></span>
 <span>  <span class="va">seurat_obj</span>,</span>
 <span>  noise_pct <span class="op">=</span> <span class="fl">0.15</span>,  <span class="co"># keep combinations with &lt; 15% of cancer cells as noise</span></span>
 <span>  b <span class="op">=</span> <span class="fl">0.5</span>,           <span class="co"># weight purity more than coverage</span></span>
-<span>  plot <span class="op">=</span> <span class="cn">TRUE</span>        <span class="co"># draw the coverage vs purity heatmap</span></span>
+<span>  plot <span class="op">=</span> <span class="cn">TRUE</span>        <span class="co"># draw coverage, purity and F-beta heatmaps</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># View top parameter combinations</span></span>
@@ -210,7 +211,7 @@ the best combination is in the first row:</p>
 <code>n_regions</code>, <code>cancer_covered</code>, <code>purity</code>
 and <code>fbeta</code>. Combinations above the <code>noise_pct</code>
 cutoff have <code>NA</code> for the coverage, purity and
-<code>fbeta</code> columns. The heatmap is also stored in
+<code>fbeta</code> columns. The heatmaps are also stored in
 <code>attr(results, "plot")</code> for saving.</p>
 <p>You can customize the search ranges:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">

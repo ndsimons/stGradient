@@ -92,9 +92,10 @@ three steps:
 [`optimize_dbscan_params()`](../reference/optimize_dbscan_params.md)
 runs all three steps in one call. `noise_pct` sets the maximum fraction
 of cancer cells labeled noise for a combination to be scored, `b` sets
-the F-beta weighting, and `plot = TRUE` draws the coverage and purity
-heatmap shown above. Results are sorted by `fbeta`, so the best
-combination is in the first row:
+the F-beta weighting, and `plot = TRUE` draws coverage, purity and
+F-beta heatmaps, with the best combination outlined in red on the F-beta
+heatmap. Results are sorted by `fbeta`, so the best combination is in
+the first row:
 
 ``` r
 
@@ -102,7 +103,7 @@ results <- optimize_dbscan_params(
   seurat_obj,
   noise_pct = 0.15,  # keep combinations with < 15% of cancer cells as noise
   b = 0.5,           # weight purity more than coverage
-  plot = TRUE        # draw the coverage vs purity heatmap
+  plot = TRUE        # draw coverage, purity and F-beta heatmaps
 )
 
 # View top parameter combinations
@@ -118,7 +119,7 @@ seurat_obj <- add_dbscan_polygons(seurat_obj, eps = best$eps, minPts = best$minP
 The returned data frame has one row per `eps`/`minPts` combination with
 `sil_score`, `n_clusters`, `noise_pct`, `n_regions`, `cancer_covered`,
 `purity` and `fbeta`. Combinations above the `noise_pct` cutoff have
-`NA` for the coverage, purity and `fbeta` columns. The heatmap is also
+`NA` for the coverage, purity and `fbeta` columns. The heatmaps are also
 stored in `attr(results, "plot")` for saving.
 
 You can customize the search ranges:

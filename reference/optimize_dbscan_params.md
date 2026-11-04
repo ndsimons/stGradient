@@ -45,8 +45,9 @@ optimize_dbscan_params(
 
 - plot:
 
-  Print a heatmap of coverage and purity for the scored combinations
-  (default: TRUE)
+  Print heatmaps of coverage, purity and F-beta for the scored
+  combinations, with the best combination outlined in red on the F-beta
+  heatmap (default: TRUE)
 
 - fov_name:
 
