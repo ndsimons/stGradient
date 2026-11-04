@@ -282,18 +282,35 @@ plot_distance_genes <- function(result_list, top_n = 12, sample_label = "") {
     sprintf(" (%s)", focus)
   )
 
-  p_volcano <- ggplot2::ggplot(results, ggplot2::aes(x = coef, y = -log10(p_adj_lm))) +
-    ggplot2::geom_point(ggplot2::aes(color = direction), alpha = 0.5, size = 1) +
+  # Adjusted p-values can underflow to 0 (-log10 = Inf); draw those just above
+  # the largest finite value instead of pinning them to the panel edge
+  volcano_data <- results %>%
+    dplyr::filter(!is.na(p_adj_lm), !is.na(coef)) %>%
+    dplyr::mutate(neg_log_p = -log10(p_adj_lm), capped = is.infinite(neg_log_p))
+  finite_max <- suppressWarnings(max(volcano_data$neg_log_p[!volcano_data$capped]))
+  if (!is.finite(finite_max)) finite_max <- -log10(.Machine$double.xmin)
+  y_cap <- finite_max * 1.05
+  volcano_data$neg_log_p[volcano_data$capped] <- y_cap
+  n_capped <- sum(volcano_data$capped)
+
+  label_data <- volcano_data %>%
+    dplyr::filter(p_adj_lm < 0.05) %>%
+    dplyr::group_by(direction) %>%
+    dplyr::arrange(p_adj_lm, dplyr::desc(abs(coef)), .by_group = TRUE) %>%
+    dplyr::slice_head(n = 5) %>%
+    dplyr::ungroup()
+
+  p_volcano <- ggplot2::ggplot(volcano_data, ggplot2::aes(x = coef, y = neg_log_p)) +
+    ggplot2::geom_point(ggplot2::aes(color = direction, shape = capped), alpha = 0.5, size = 1) +
     ggplot2::geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "grey40") +
     ggrepel::geom_text_repel(
-      data = results %>%
-        dplyr::filter(p_adj_lm < 0.05) %>%
-        dplyr::group_by(direction) %>%
-        dplyr::slice_min(p_adj_lm, n = 5),
+      data = label_data,
       ggplot2::aes(label = gene),
       size = 3,
       max.overlaps = 20
     ) +
+    ggplot2::scale_shape_manual(values = c(`FALSE` = 16, `TRUE` = 17), guide = "none") +
+    ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0.02, 0.1))) +
     ggplot2::scale_color_manual(values = c(
       increases_with_distance = "#E74C3C",
       decreases_with_distance = "#3498DB"
@@ -301,7 +318,10 @@ plot_distance_genes <- function(result_list, top_n = 12, sample_label = "") {
     ggplot2::labs(
       title = paste0("Distance-associated genes", title_suffix),
       x = "Coefficient (expression ~ distance)",
-      y = "-log10(adjusted p-value)"
+      y = "-log10(adjusted p-value)",
+      caption = if (n_capped > 0) {
+        sprintf("\u25B2 %d gene(s) with adjusted p-value below machine precision, drawn at the top", n_capped)
+      }
     ) +
     ggplot2::theme_minimal()
 
@@ -311,11 +331,13 @@ plot_distance_genes <- function(result_list, top_n = 12, sample_label = "") {
     n_down <- top_n - n_up
     top_up <- results %>%
       dplyr::filter(p_adj_lm < 0.05, coef > 0) %>%
-      dplyr::slice_min(p_adj_lm, n = n_up) %>%
+      dplyr::arrange(p_adj_lm, dplyr::desc(abs(coef))) %>%
+      dplyr::slice_head(n = n_up) %>%
       dplyr::pull(gene)
     top_down <- results %>%
       dplyr::filter(p_adj_lm < 0.05, coef < 0) %>%
-      dplyr::slice_min(p_adj_lm, n = n_down) %>%
+      dplyr::arrange(p_adj_lm, dplyr::desc(abs(coef))) %>%
+      dplyr::slice_head(n = n_down) %>%
       dplyr::pull(gene)
     plot_data <- binned %>% dplyr::filter(gene %in% c(top_up, top_down))
 
