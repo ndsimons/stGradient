@@ -85,6 +85,8 @@ plot_tls_score(seurat_obj, highlight = "ring", label_tls = TRUE)
 plot_tls_score(seurat_obj, highlight = "none")
 ```
 
+![](plot_tls_score.png)
+
 ## Step 5: Check That Called TLS Score Higher
 
 ``` r
@@ -97,6 +99,8 @@ tls_stats$wilcox_p
 plot_tls_score_comparison(seurat_obj, type = "beeswarm")
 plot_tls_score_comparison(seurat_obj, type = "violin")
 ```
+
+![](plot_tls_score_comparison.png)
 
 TLS with low mean scores in `tls_stats$by_tls` may be false positives
 worth reviewing. The beeswarm plot uses the `ggbeeswarm` package if
