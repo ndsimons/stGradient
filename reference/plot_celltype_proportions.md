@@ -1,6 +1,7 @@
 # Plot Cell Type Proportions
 
-Shows proportion trajectories for top cell types
+Shows proportion trajectories for the top cell types, or for cell types
+chosen by the user.
 
 ## Usage
 
@@ -10,7 +11,8 @@ plot_celltype_proportions(
   top_n = 5,
   span = 0.3,
   level = 0.95,
-  ncol = NULL
+  ncol = NULL,
+  celltypes = NULL
 )
 ```
 
@@ -22,7 +24,8 @@ plot_celltype_proportions(
 
 - top_n:
 
-  Number of top cell types to show
+  Number of top cell types to show. Ignored when \`celltypes\` is
+  supplied.
 
 - span:
 
@@ -34,8 +37,14 @@ plot_celltype_proportions(
 
 - ncol:
 
-  Number of facet columns. If `NULL` (default), chosen automatically by
-  [`ggplot2::facet_wrap()`](https://ggplot2.tidyverse.org/reference/facet_wrap.html).
+  Number of facet columns. If \`NULL\` (default), chosen automatically
+  by \`ggplot2::facet_wrap()\`.
+
+- celltypes:
+
+  Optional character vector of cell types to plot, shown in the order
+  given. If \`NULL\` (default), the \`top_n\` cell types with the
+  largest contribution at the peak distance are shown.
 
 ## Value
 

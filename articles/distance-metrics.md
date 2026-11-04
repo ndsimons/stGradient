@@ -130,6 +130,9 @@ plot_celltype_heatmap(celltype_contributions)
 
 # Proportion trajectories for top cell types
 plot_celltype_proportions(celltype_contributions, top_n = 5)
+
+# Or choose the cell types to plot
+plot_celltype_proportions(celltype_contributions, celltypes = c("B_Cells", "CD8+_T_Cells"))
 ```
 
 ![](plot_all_metrics.png)

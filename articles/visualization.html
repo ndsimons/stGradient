@@ -170,7 +170,11 @@ region of interest:</p>
 </h3>
 <p>Trajectory of top cell type proportions across distances:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_celltype_proportions.html">plot_celltype_proportions</a></span><span class="op">(</span><span class="va">celltype_contributions</span>, top_n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># Top cell types by contribution</span></span>
+<span><span class="fu"><a href="../reference/plot_celltype_proportions.html">plot_celltype_proportions</a></span><span class="op">(</span><span class="va">celltype_contributions</span>, top_n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Or choose the cell types to plot (shown in the order given)</span></span>
+<span><span class="fu"><a href="../reference/plot_celltype_proportions.html">plot_celltype_proportions</a></span><span class="op">(</span><span class="va">celltype_contributions</span>, celltypes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"B_Cells"</span>, <span class="st">"CD8+_T_Cells"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">

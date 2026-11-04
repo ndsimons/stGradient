@@ -102,7 +102,11 @@ Trajectory of top cell type proportions across distances:
 
 ``` r
 
+# Top cell types by contribution
 plot_celltype_proportions(celltype_contributions, top_n = 5)
+
+# Or choose the cell types to plot (shown in the order given)
+plot_celltype_proportions(celltype_contributions, celltypes = c("B_Cells", "CD8+_T_Cells"))
 ```
 
 ## DBSCAN Polygon Plots
