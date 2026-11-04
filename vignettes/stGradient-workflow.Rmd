@@ -42,11 +42,17 @@ launch_stGradient()
 seurat_obj <- add_polygon_membership(seurat_obj, drawn_polygons)
 ```
 
-Option B — Automated (DBSCAN):
+Option B — Automated (DBSCAN). Choose `eps`/`minPts` by coverage and purity, then build the ROI polygons:
 
 ```{r automated}
-seurat_obj <- add_dbscan_polygons(seurat_obj)
+dbscan_res <- optimize_dbscan_params(seurat_obj, noise_pct = 0.15, b = 0.5, plot = TRUE)
+best <- dbscan_res[1, ]
+
+seurat_obj <- add_dbscan_polygons(seurat_obj, eps = best$eps, minPts = best$minPts)
 auto_polygons <- get_cancer_regions(seurat_obj)
+
+# Inspect the detected ROIs
+plot_dbscan_polygons(seurat_obj, eps = best$eps, minPts = best$minPts)
 ```
 
 See: [Region Selection](region-selection.html)
@@ -81,6 +87,18 @@ cat("Maximum separation at:", critical$max_distance, "μm\n")
 ## Step 6: Visualize
 
 ```{r visualize}
+# Spatial QC: ROI membership and cell types
+qc_out <- qc_plot_xenium(
+  obj = seurat_obj,
+  roi_col = "inside_polygon",
+  celltype_col = "first_type",
+  show = "both"
+)
+
+# Cell type composition inside vs outside the ROIs
+plot_roi_inout_celltype_stack(qc_out$df, roi_col = "inside_polygon", celltype_col = "first_type")
+
+# Distance profile plots
 plot_all_metrics(results$profile)
 plot_celltype_heatmap(results$celltype_contributions)
 plot_celltype_proportions(results$celltype_contributions, top_n = 5)
