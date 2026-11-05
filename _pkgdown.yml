@@ -88,6 +88,9 @@ reference:
       - plot_pcf_outside_heatmap
       - plot_pcf_outside_pair_envelopes
       - plot_pcf_pair_gg
+      - calculate_pcf_by_band
+      - plot_pcf_band_heatmap
+      - plot_pcf_band_profile
 
   - title: Gene-Distance Analysis
     desc: Model gene expression as a function of spatial distance

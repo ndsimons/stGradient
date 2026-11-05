@@ -37,6 +37,7 @@ Suggests:
     Matrix,
     spatstat.geom,
     spatstat.explore,
+    spatstat.random,
     ggbeeswarm,
     knitr,
     rmarkdown

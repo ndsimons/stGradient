@@ -10,7 +10,8 @@ build_outside_ppp(
   celltype_col,
   fov_name = "fov",
   min_cells = 10,
-  window_obj = NULL
+  window_obj = NULL,
+  tissue_window = "concave"
 )
 }
 \arguments{
@@ -24,8 +25,12 @@ build_outside_ppp(
 
 \item{min_cells}{Minimum number of cells required per cell type.}
 
-\item{window_obj}{Optional `spatstat.geom::owin` window. If `NULL`, a bounding-box
-window is built from all coordinates.}
+\item{window_obj}{Optional `spatstat.geom::owin` tissue window. Tumor polygons
+are subtracted from it. If `NULL`, the tissue outline is built from all cell
+coordinates according to `tissue_window`.}
+
+\item{tissue_window}{Tissue outline used when `window_obj` is `NULL`; see
+[build_outside_window()].}
 }
 \value{
 A list with `ppp_obj`, `cells_outside`, and `window`.
