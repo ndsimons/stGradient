@@ -5,3 +5,4 @@
 ^vignette_figures_files$
 ^vignette_figures_output$
 ^slides$
+^manuscript$
