@@ -47,6 +47,15 @@ pcf_summary <- calculate_pcf_outside_summary(
 - `include_self_pairs` — whether to compute same-type PCF (e.g., A-A)
 - `ordered_pairs` — `FALSE` computes each pair once (A-B); `TRUE`
   computes both (A-B and B-A)
+- `tissue_window` — tissue outline used as the observation window:
+  `"concave"` (default, concave hull of all cells), `"convex"`, or
+  `"bbox"`. Tumor polygons are always removed from the window, since
+  outside cells cannot occur there; leaving them in biases g(r) upward.
+  Pass your own tissue outline with `window_obj`.
+- `bw` — kernel bandwidth in microns (default 10). Use the same `bw`
+  here and in
+  [`plot_pcf_outside_pair_envelopes()`](../reference/plot_pcf_outside_pair_envelopes.md)
+  so heatmap values match the envelope curves.
 
 ### Interpreting PCF Values
 
@@ -86,14 +95,47 @@ env_list <- plot_pcf_outside_pair_envelopes(
   ordered_pairs = FALSE,
   nsim = 39,
   bw = 10,
+  null_model = "band_permutation",
+  band_width = 25,
   file = "pcf_outside_all_pairs.png"
 )
 ```
 
 This saves one PNG per cell-type pair
 (e.g. `pcf_outside_all_pairs_TypeA_vs_TypeB.png`) showing the observed
-PCF against simulation envelopes. Points outside the envelope represent
-statistically significant spatial patterns.
+PCF against simulation envelopes.
+
+### Global vs. Pointwise Envelopes
+
+`envelope_type` controls how the envelope can be read:
+
+- `"global"` (default) — a simultaneous envelope over the distance range
+  `r_range` (default: from `bw` up to the largest distance computed). If
+  the observed curve leaves the band anywhere in that range, the pattern
+  differs from the null at significance level `1 / (nsim + 1)`,
+  e.g. 0.05 for `nsim = 19` and 0.01 for `nsim = 99`. Each envelope also
+  carries a MAD test p-value in `attr(env, "p_value")`. The band has the
+  same width at every distance.
+- `"pointwise"` — a separate envelope at each distance, with a two-sided
+  significance level of `2 / (nsim + 1)` at each single distance.
+  Scanning the curve for any distance outside the band inflates false
+  positives (in simulations, about half of random-label datasets left a
+  19-simulation pointwise envelope somewhere between 10 and 80 µm), so
+  use it only for a distance chosen in advance.
+
+### Choosing a Null Model
+
+`null_model` sets what the envelopes are simulated under:
+
+- `"csr"` (default) — cells placed uniformly at random in the
+  outside-tumor window with independent labels. Tissue is rarely
+  uniform, so most pairs will fall outside these envelopes.
+- `"band_permutation"` — cell positions are kept and cell-type labels
+  are shuffled among cells in the same distance band from the tumor
+  boundary (`band_width` microns wide). Two cell types that are both
+  enriched near the tumor will not appear co-localized just because of
+  that shared gradient. Set `band_width = Inf` to shuffle labels across
+  all outside cells.
 
 ## Single-Pair PCF Plot
 
@@ -108,12 +150,69 @@ plot_pcf_pair_gg(env_list, "TypeA", "TypeB")
 
 ![](pcf_outside_all_pairs_CD8%2B_T_Cells_vs_Stromal.png)
 
+## PCF by Distance Band
+
+[`calculate_pcf_by_band()`](../reference/calculate_pcf_by_band.md)
+splits the outside-tumor region into bands that follow the tumor contour
+(e.g. 0–50, 50–100, 100–150 µm from the boundary) and computes g(r) for
+every cell-type pair separately in each band. This shows whether
+co-localization changes with distance from the tumor.
+
+``` r
+
+band_pcf <- calculate_pcf_by_band(
+  seurat_obj = seurat_obj,
+  polygons = auto_polygons,
+  celltype_col = "cellType",
+  band_width = 50,          # or band_breaks = c(0, 25, 50, 100, 200)
+  max_distance = 200,
+  approach = "restricted",  # or "anchored"
+  distance = 20,            # cell-to-cell r; can be a vector
+  null_model = "label_shuffle",
+  nsim = 99
+)
+
+plot_pcf_band_heatmap(band_pcf)    # one heatmap per band, * = p_adj < 0.05
+plot_pcf_band_profile(band_pcf)    # g vs. distance from tumor, per pair
+```
+
+Two approaches:
+
+- `"restricted"` — each band is its own window; both cell types come
+  from the band. Answers “within this band, are B cells concentrated
+  around A cells, given the band’s cell mix?”. Bands are thin, so keep
+  `distance` at or below the band width.
+- `"anchored"` — anchor (type 1) cells come from the band; neighbor
+  (type 2) cells can be anywhere outside the tumor. Answers “around A
+  cells in this band, how dense are B cells at distance r?”.
+  Directional, so ordered pairs are used. Larger `distance` values are
+  usable.
+
+Null models (`nsim` simulations, two-sided Monte Carlo p-value per band,
+pair and distance; `p_adj` is BH-adjusted across all of them):
+
+- `"label_shuffle"` — positions kept, labels permuted within the band
+  (anchored: within every band, preserving the tumor gradient).
+- `"csr"` — restricted: cells relocated uniformly within the band;
+  anchored: anchors fixed, all other cells relocated uniformly in the
+  outside window. Also flags ordinary clumping and, for anchored, the
+  tumor gradient.
+- `"none"` — observed g only.
+
+In anchored mode, raw g is high for every anchor type near the tumor
+because neighbor density there is higher than average. Use
+`plot_pcf_band_heatmap(band_pcf, value = "g_over_null")` to show g
+relative to the null. The band polygons are stored in
+`attr(band_pcf, "bands")` for plotting.
+
 ## Notes
 
 - These PCF helpers analyze **only cells outside polygons** by design
-- Increasing `nsim` improves envelope precision but increases
-  computation time
-- The `bw` parameter controls PCF bandwidth smoothing
+- `nsim` is required; more simulations take longer. With
+  `null_model = "band_permutation"` and a global envelope, `2 * nsim`
+  permutations are run (the second set estimates the null mean)
+- The `bw` parameter controls PCF bandwidth smoothing and defaults to 10
+  µm in both the summary and the envelopes
 - Underlying computation uses the `spatstat` ecosystem
 
 ## Next Steps

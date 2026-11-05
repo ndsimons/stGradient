@@ -13,7 +13,8 @@ build_outside_ppp(
   celltype_col,
   fov_name = "fov",
   min_cells = 10,
-  window_obj = NULL
+  window_obj = NULL,
+  tissue_window = "concave"
 )
 ```
 
@@ -41,8 +42,14 @@ build_outside_ppp(
 
 - window_obj:
 
-  Optional \`spatstat.geom::owin\` window. If \`NULL\`, a bounding-box
-  window is built from all coordinates.
+  Optional \`spatstat.geom::owin\` tissue window. Tumor polygons are
+  subtracted from it. If \`NULL\`, the tissue outline is built from all
+  cell coordinates according to \`tissue_window\`.
+
+- tissue_window:
+
+  Tissue outline used when \`window_obj\` is \`NULL\`; see
+  \[build_outside_window()\].
 
 ## Value
 

@@ -165,6 +165,12 @@ Pair correlation functions outside tumor polygons
   : Plot Outside-Polygon PCF Envelopes for All Cell-Type Pairs
 - [`plot_pcf_pair_gg()`](plot_pcf_pair_gg.md) : Plot a Single
   Outside-Polygon PCF Pair as a ggplot
+- [`calculate_pcf_by_band()`](calculate_pcf_by_band.md) : Calculate Pair
+  Correlation Within Distance Bands Around Tumor Polygons
+- [`plot_pcf_band_heatmap()`](plot_pcf_band_heatmap.md) : Plot Per-Band
+  PCF Heatmaps
+- [`plot_pcf_band_profile()`](plot_pcf_band_profile.md) : Plot PCF
+  Across Distance Bands
 
 ## Gene-Distance Analysis
 

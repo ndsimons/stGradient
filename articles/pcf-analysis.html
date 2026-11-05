@@ -125,6 +125,18 @@ the analysis</li>
 <li>
 <code>ordered_pairs</code> — <code>FALSE</code> computes each pair
 once (A-B); <code>TRUE</code> computes both (A-B and B-A)</li>
+<li>
+<code>tissue_window</code> — tissue outline used as the observation
+window: <code>"concave"</code> (default, concave hull of all cells),
+<code>"convex"</code>, or <code>"bbox"</code>. Tumor polygons are always
+removed from the window, since outside cells cannot occur there; leaving
+them in biases g(r) upward. Pass your own tissue outline with
+<code>window_obj</code>.</li>
+<li>
+<code>bw</code> — kernel bandwidth in microns (default 10). Use the
+same <code>bw</code> here and in
+<code><a href="../reference/plot_pcf_outside_pair_envelopes.html">plot_pcf_outside_pair_envelopes()</a></code> so heatmap values match
+the envelope curves.</li>
 </ul>
 </div>
 <div class="section level3">
@@ -178,12 +190,57 @@ assess statistical significance:</p>
 <span>  ordered_pairs <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  nsim <span class="op">=</span> <span class="fl">39</span>,</span>
 <span>  bw <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  null_model <span class="op">=</span> <span class="st">"band_permutation"</span>,</span>
+<span>  band_width <span class="op">=</span> <span class="fl">25</span>,</span>
 <span>  file <span class="op">=</span> <span class="st">"pcf_outside_all_pairs.png"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>This saves one PNG per cell-type pair
 (e.g. <code>pcf_outside_all_pairs_TypeA_vs_TypeB.png</code>) showing the
-observed PCF against simulation envelopes. Points outside the envelope
-represent statistically significant spatial patterns.</p>
+observed PCF against simulation envelopes.</p>
+<div class="section level3">
+<h3 id="global-vs--pointwise-envelopes">Global vs. Pointwise Envelopes<a class="anchor" aria-label="anchor" href="#global-vs--pointwise-envelopes"></a>
+</h3>
+<p><code>envelope_type</code> controls how the envelope can be read:</p>
+<ul>
+<li>
+<code>"global"</code> (default) — a simultaneous envelope over the
+distance range <code>r_range</code> (default: from <code>bw</code> up to
+the largest distance computed). If the observed curve leaves the band
+anywhere in that range, the pattern differs from the null at
+significance level <code>1 / (nsim + 1)</code>, e.g. 0.05 for
+<code>nsim = 19</code> and 0.01 for <code>nsim = 99</code>. Each
+envelope also carries a MAD test p-value in
+<code>attr(env, "p_value")</code>. The band has the same width at every
+distance.</li>
+<li>
+<code>"pointwise"</code> — a separate envelope at each distance,
+with a two-sided significance level of <code>2 / (nsim + 1)</code> at
+each single distance. Scanning the curve for any distance outside the
+band inflates false positives (in simulations, about half of
+random-label datasets left a 19-simulation pointwise envelope somewhere
+between 10 and 80 µm), so use it only for a distance chosen in
+advance.</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="choosing-a-null-model">Choosing a Null Model<a class="anchor" aria-label="anchor" href="#choosing-a-null-model"></a>
+</h3>
+<p><code>null_model</code> sets what the envelopes are simulated
+under:</p>
+<ul>
+<li>
+<code>"csr"</code> (default) — cells placed uniformly at random in
+the outside-tumor window with independent labels. Tissue is rarely
+uniform, so most pairs will fall outside these envelopes.</li>
+<li>
+<code>"band_permutation"</code> — cell positions are kept and
+cell-type labels are shuffled among cells in the same distance band from
+the tumor boundary (<code>band_width</code> microns wide). Two cell
+types that are both enriched near the tumor will not appear co-localized
+just because of that shared gradient. Set <code>band_width = Inf</code>
+to shuffle labels across all outside cells.</li>
+</ul>
+</div>
 </div>
 <div class="section level2">
 <h2 id="single-pair-pcf-plot">Single-Pair PCF Plot<a class="anchor" aria-label="anchor" href="#single-pair-pcf-plot"></a>
@@ -195,14 +252,77 @@ represent statistically significant spatial patterns.</p>
 <p><img src="pcf_outside_all_pairs_CD8%2B_T_Cells_vs_Stromal.png"></p>
 </div>
 <div class="section level2">
+<h2 id="pcf-by-distance-band">PCF by Distance Band<a class="anchor" aria-label="anchor" href="#pcf-by-distance-band"></a>
+</h2>
+<p><code><a href="../reference/calculate_pcf_by_band.html">calculate_pcf_by_band()</a></code> splits the outside-tumor region
+into bands that follow the tumor contour (e.g. 0–50, 50–100, 100–150 µm
+from the boundary) and computes g(r) for every cell-type pair separately
+in each band. This shows whether co-localization changes with distance
+from the tumor.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">band_pcf</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/calculate_pcf_by_band.html">calculate_pcf_by_band</a></span><span class="op">(</span></span>
+<span>  seurat_obj <span class="op">=</span> <span class="va">seurat_obj</span>,</span>
+<span>  polygons <span class="op">=</span> <span class="va">auto_polygons</span>,</span>
+<span>  celltype_col <span class="op">=</span> <span class="st">"cellType"</span>,</span>
+<span>  band_width <span class="op">=</span> <span class="fl">50</span>,          <span class="co"># or band_breaks = c(0, 25, 50, 100, 200)</span></span>
+<span>  max_distance <span class="op">=</span> <span class="fl">200</span>,</span>
+<span>  approach <span class="op">=</span> <span class="st">"restricted"</span>,  <span class="co"># or "anchored"</span></span>
+<span>  distance <span class="op">=</span> <span class="fl">20</span>,            <span class="co"># cell-to-cell r; can be a vector</span></span>
+<span>  null_model <span class="op">=</span> <span class="st">"label_shuffle"</span>,</span>
+<span>  nsim <span class="op">=</span> <span class="fl">99</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/plot_pcf_band_heatmap.html">plot_pcf_band_heatmap</a></span><span class="op">(</span><span class="va">band_pcf</span><span class="op">)</span>    <span class="co"># one heatmap per band, * = p_adj &lt; 0.05</span></span>
+<span><span class="fu"><a href="../reference/plot_pcf_band_profile.html">plot_pcf_band_profile</a></span><span class="op">(</span><span class="va">band_pcf</span><span class="op">)</span>    <span class="co"># g vs. distance from tumor, per pair</span></span></code></pre></div>
+<p>Two approaches:</p>
+<ul>
+<li>
+<code>"restricted"</code> — each band is its own window; both cell
+types come from the band. Answers “within this band, are B cells
+concentrated around A cells, given the band’s cell mix?”. Bands are
+thin, so keep <code>distance</code> at or below the band width.</li>
+<li>
+<code>"anchored"</code> — anchor (type 1) cells come from the band;
+neighbor (type 2) cells can be anywhere outside the tumor. Answers
+“around A cells in this band, how dense are B cells at distance r?”.
+Directional, so ordered pairs are used. Larger <code>distance</code>
+values are usable.</li>
+</ul>
+<p>Null models (<code>nsim</code> simulations, two-sided Monte Carlo
+p-value per band, pair and distance; <code>p_adj</code> is BH-adjusted
+across all of them):</p>
+<ul>
+<li>
+<code>"label_shuffle"</code> — positions kept, labels permuted
+within the band (anchored: within every band, preserving the tumor
+gradient).</li>
+<li>
+<code>"csr"</code> — restricted: cells relocated uniformly within
+the band; anchored: anchors fixed, all other cells relocated uniformly
+in the outside window. Also flags ordinary clumping and, for anchored,
+the tumor gradient.</li>
+<li>
+<code>"none"</code> — observed g only.</li>
+</ul>
+<p>In anchored mode, raw g is high for every anchor type near the tumor
+because neighbor density there is higher than average. Use
+<code>plot_pcf_band_heatmap(band_pcf, value = "g_over_null")</code> to
+show g relative to the null. The band polygons are stored in
+<code>attr(band_pcf, "bands")</code> for plotting.</p>
+</div>
+<div class="section level2">
 <h2 id="notes">Notes<a class="anchor" aria-label="anchor" href="#notes"></a>
 </h2>
 <ul>
 <li>These PCF helpers analyze <strong>only cells outside
 polygons</strong> by design</li>
-<li>Increasing <code>nsim</code> improves envelope precision but
-increases computation time</li>
-<li>The <code>bw</code> parameter controls PCF bandwidth smoothing</li>
+<li>
+<code>nsim</code> is required; more simulations take longer. With
+<code>null_model = "band_permutation"</code> and a global envelope,
+<code>2 * nsim</code> permutations are run (the second set estimates the
+null mean)</li>
+<li>The <code>bw</code> parameter controls PCF bandwidth smoothing and
+defaults to 10 µm in both the summary and the envelopes</li>
 <li>Underlying computation uses the <code>spatstat</code> ecosystem</li>
 </ul>
 </div>

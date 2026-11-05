@@ -16,10 +16,12 @@
 <url><loc>/reference/add_polygon_membership.html</loc></url>
 <url><loc>/reference/add_tls_score.html</loc></url>
 <url><loc>/reference/build_outside_ppp.html</loc></url>
+<url><loc>/reference/build_outside_window.html</loc></url>
 <url><loc>/reference/calculate_boundary_distances.html</loc></url>
 <url><loc>/reference/calculate_composition_difference.html</loc></url>
 <url><loc>/reference/calculate_de_strength.html</loc></url>
 <url><loc>/reference/calculate_distance_profile.html</loc></url>
+<url><loc>/reference/calculate_pcf_by_band.html</loc></url>
 <url><loc>/reference/calculate_pcf_outside_summary.html</loc></url>
 <url><loc>/reference/calculate_transcriptomic_distance.html</loc></url>
 <url><loc>/reference/call_tls.html</loc></url>
@@ -41,6 +43,8 @@
 <url><loc>/reference/plot_dbscan_polygons.html</loc></url>
 <url><loc>/reference/plot_distance_comparison.html</loc></url>
 <url><loc>/reference/plot_distance_genes.html</loc></url>
+<url><loc>/reference/plot_pcf_band_heatmap.html</loc></url>
+<url><loc>/reference/plot_pcf_band_profile.html</loc></url>
 <url><loc>/reference/plot_pcf_outside_heatmap.html</loc></url>
 <url><loc>/reference/plot_pcf_outside_pair_envelopes.html</loc></url>
 <url><loc>/reference/plot_pcf_pair_gg.html</loc></url>

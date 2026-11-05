@@ -37,7 +37,8 @@ bands.
 
 ``` r
 if (FALSE) { # \dontrun{
-env_list <- plot_pcf_outside_pair_envelopes(seurat_obj, auto_polygons)
+env_list <- plot_pcf_outside_pair_envelopes(seurat_obj, auto_polygons,
+                                            celltype_col = "cellType", nsim = 19)
 plot_pcf_pair_gg(env_list, "TypeA", "TypeB")
 } # }
 ```

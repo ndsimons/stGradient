@@ -62,7 +62,8 @@ tumor polygons. This helper is used internally by PCF analysis functions.</p>
 <span>  <span class="va">celltype_col</span>,</span>
 <span>  fov_name <span class="op">=</span> <span class="st">"fov"</span>,</span>
 <span>  min_cells <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  window_obj <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  window_obj <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  tissue_window <span class="op">=</span> <span class="st">"concave"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -91,8 +92,14 @@ tumor polygons. This helper is used internally by PCF analysis functions.</p>
 
 
 <dt id="arg-window-obj">window_obj<a class="anchor" aria-label="anchor" href="#arg-window-obj"></a></dt>
-<dd><p>Optional `spatstat.geom::owin` window. If `NULL`, a bounding-box
-window is built from all coordinates.</p></dd>
+<dd><p>Optional `spatstat.geom::owin` tissue window. Tumor polygons
+are subtracted from it. If `NULL`, the tissue outline is built from all cell
+coordinates according to `tissue_window`.</p></dd>
+
+
+<dt id="arg-tissue-window">tissue_window<a class="anchor" aria-label="anchor" href="#arg-tissue-window"></a></dt>
+<dd><p>Tissue outline used when `window_obj` is `NULL`; see
+[build_outside_window()].</p></dd>
 
 </dl></div>
     <div class="section level2">

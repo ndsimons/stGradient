@@ -1,0 +1,194 @@
+# Calculate Pair Correlation Within Distance Bands Around Tumor Polygons
+
+Splits the outside-tumor region into bands that follow the tumor contour
+(band 1 = \`band_breaks\[1\]\` to \`band_breaks\[2\]\` from the tumor
+boundary, and so on) and computes the cross pair correlation function
+g(r) for every cell-type pair separately in each band. This shows
+whether co-localization of two cell types changes with distance from the
+tumor.
+
+## Usage
+
+``` r
+calculate_pcf_by_band(
+  seurat_obj,
+  polygons,
+  celltype_col,
+  band_width = 25,
+  max_distance = NULL,
+  band_breaks = NULL,
+  approach = c("restricted", "anchored"),
+  distance = 20,
+  null_model = c("label_shuffle", "csr", "none"),
+  nsim = 99,
+  bw = 10,
+  min_cells = 10,
+  fov_name = "fov",
+  include_self_pairs = TRUE,
+  ordered_pairs = NULL,
+  window_obj = NULL,
+  tissue_window = c("concave", "convex", "bbox"),
+  p_adjust_method = "BH",
+  show_progress = interactive()
+)
+```
+
+## Arguments
+
+- seurat_obj:
+
+  Seurat object with spatial coordinates.
+
+- polygons:
+
+  sf polygon object representing tumor regions.
+
+- celltype_col:
+
+  Metadata column containing cell type labels.
+
+- band_width:
+
+  Band width in coordinate units (microns). Ignored when \`band_breaks\`
+  is supplied.
+
+- max_distance:
+
+  Outer edge of the last band. \`NULL\` covers all outside cells
+  (rounded up to a whole band). Ignored when \`band_breaks\` is
+  supplied.
+
+- band_breaks:
+
+  Optional increasing numeric vector of band edges, e.g. \`c(0, 25, 50,
+  100, 200)\`. Overrides \`band_width\` and \`max_distance\`. Cells
+  closer than the first or at least the last break are in no band.
+
+- approach:
+
+  \`"restricted"\` or \`"anchored"\`. See Details.
+
+- distance:
+
+  Cell-to-cell distance(s) r at which g is reported. One value or a
+  vector.
+
+- null_model:
+
+  \`"label_shuffle"\`, \`"csr"\`, or \`"none"\`. See Details.
+
+- nsim:
+
+  Number of simulations for the null model.
+
+- bw:
+
+  Kernel bandwidth passed to \`spatstat.explore::pcfmulti()\`. \`NULL\`
+  uses the \`spatstat\` default.
+
+- min_cells:
+
+  Minimum cells of a type needed to compute g for it: per band for both
+  types with \`"restricted"\`; per band for the anchor type and over the
+  whole outside region for the neighbor type with \`"anchored"\`. Types
+  with fewer than \`min_cells\` outside cells overall are dropped
+  entirely.
+
+- fov_name:
+
+  Field of view/image name passed to \`Seurat::GetTissueCoordinates\`.
+
+- include_self_pairs:
+
+  Logical; include same-type pairs.
+
+- ordered_pairs:
+
+  Logical; compute both A-B and B-A. \`NULL\` (default) uses \`TRUE\`
+  for \`"anchored"\` and \`FALSE\` for \`"restricted"\`.
+
+- window_obj:
+
+  Optional \`spatstat.geom::owin\` tissue window; tumor polygons are
+  subtracted from it.
+
+- tissue_window:
+
+  Tissue outline used when \`window_obj\` is \`NULL\`: \`"concave"\`,
+  \`"convex"\`, or \`"bbox"\`. See \[build_outside_window()\].
+
+- p_adjust_method:
+
+  Method passed to \[stats::p.adjust()\].
+
+- show_progress:
+
+  Logical; show a text progress bar.
+
+## Value
+
+Data frame with one row per band, pair and distance: \`band\`,
+\`band_inner\`, \`band_outer\`, \`band_label\`, \`type1\`, \`type2\`,
+\`distance\`, \`g_value\`, \`n_type1\`, \`n_type2\` (cells used: in the
+band, or for the anchored neighbor type, in the whole outside region),
+and when a null model is used \`null_mean\`, \`null_lo\`, \`null_hi\`
+(2.5 quantiles), \`p_value\`, \`p_adj\`. Attributes: \`approach\`,
+\`null_model\`, \`nsim\`, \`bw\`, \`band_breaks\`, \`ordered_pairs\`,
+and \`bands\` (an sf object of band polygons for plotting).
+
+## Details
+
+Band membership uses each cell's exact distance to the nearest tumor
+polygon (the same definition as the \`"band_permutation"\` null in
+\[plot_pcf_outside_pair_envelopes()\]). Band shapes follow the irregular
+tumor outline and are clipped to the tissue window.
+
+Two approaches are available: \* \`"restricted"\`: each band is its own
+observation window and only cells in that band are used, for both cell
+types. g(r) answers "within this band, are type-2 cells concentrated
+around type-1 cells, relative to the band's own cell mix?". Bands are
+thin, so circles of radius r larger than the band width mostly fall
+outside the band and estimates become noisy; keep \`distance\` at or
+below roughly the band width. \* \`"anchored"\`: type-1 ("anchor") cells
+come from the band; type-2 ("neighbor") cells can be anywhere outside
+the tumor, and the window is the whole outside-tumor region. g(r)
+answers "around type-1 cells located in this band, how dense are type-2
+cells at distance r, relative to type-2 density over the whole outside
+region?". Not symmetric in the two types, so ordered pairs are used by
+default. Larger \`distance\` values are usable, but with \`null_model =
+"csr"\` the tumor gradient is not accounted for (see below).
+
+Null models (Monte Carlo, \`nsim\` simulations): \* \`"label_shuffle"\`:
+cell positions are kept and cell-type labels are randomly permuted. With
+\`"restricted"\`, labels are permuted among cells in the band. With
+\`"anchored"\`, labels are permuted within every band (cells beyond the
+last band form their own group), so each band keeps its cell-type
+composition and the distance-to-tumor gradient is preserved. Tests
+co-localization beyond what the band's composition and cell layout
+explain. \* \`"csr"\`: complete spatial randomness. With
+\`"restricted"\`, every cell in the band is moved to a uniformly random
+position within the band, keeping its type. With \`"anchored"\`, anchor
+cells keep their real positions and every other outside-tumor cell is
+moved to a uniformly random position in the outside window. CSR also
+flags ordinary clumping of cells, and in \`"anchored"\` mode it also
+flags any distance-to-tumor gradient. \* \`"none"\`: observed g only.
+
+The p-value is a two-sided Monte Carlo test at each \`distance\`: \`(1 +
+k) / (nsim_ok + 1)\`, where \`k\` is the number of simulations with
+\`abs(g_sim - null_mean) \>= abs(g_obs - null_mean)\` and \`nsim_ok\` is
+the number of simulations giving a finite g. \`p_adj\` adjusts these
+across all rows of the result (all bands, pairs and distances) with
+\`p_adjust_method\`.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+res <- calculate_pcf_by_band(seurat_obj, auto_polygons, celltype_col = "cellType",
+                             band_width = 50, max_distance = 200,
+                             approach = "restricted", distance = 20,
+                             null_model = "label_shuffle", nsim = 99)
+plot_pcf_band_heatmap(res)
+plot_pcf_band_profile(res)
+} # }
+```

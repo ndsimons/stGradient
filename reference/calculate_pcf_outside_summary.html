@@ -66,7 +66,9 @@ using only cells outside the tumor polygons.</p>
 <span>  include_self_pairs <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  ordered_pairs <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  window_obj <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  show_progress <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/interactive.html" class="external-link">interactive</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  show_progress <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/interactive.html" class="external-link">interactive</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  tissue_window <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"concave"</span>, <span class="st">"convex"</span>, <span class="st">"bbox"</span><span class="op">)</span>,</span>
+<span>  bw <span class="op">=</span> <span class="fl">10</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -83,7 +85,8 @@ using only cells outside the tumor polygons.</p>
 
 
 <dt id="arg-distance">distance<a class="anchor" aria-label="anchor" href="#arg-distance"></a></dt>
-<dd><p>Target distance at which to extract PCF value.</p></dd>
+<dd><p>Target distance (microns) at which to extract the PCF value.
+g is evaluated at exactly this distance.</p></dd>
 
 
 <dt id="arg-min-cells">min_cells<a class="anchor" aria-label="anchor" href="#arg-min-cells"></a></dt>
@@ -108,11 +111,24 @@ If `FALSE`, computes each pair once.</p></dd>
 
 
 <dt id="arg-window-obj">window_obj<a class="anchor" aria-label="anchor" href="#arg-window-obj"></a></dt>
-<dd><p>Optional `spatstat.geom::owin` window.</p></dd>
+<dd><p>Optional `spatstat.geom::owin` tissue window; tumor polygons
+are subtracted from it.</p></dd>
 
 
 <dt id="arg-show-progress">show_progress<a class="anchor" aria-label="anchor" href="#arg-show-progress"></a></dt>
 <dd><p>Logical; show a text progress bar.</p></dd>
+
+
+<dt id="arg-tissue-window">tissue_window<a class="anchor" aria-label="anchor" href="#arg-tissue-window"></a></dt>
+<dd><p>Tissue outline used when `window_obj` is `NULL`:
+`"concave"` (default; concave hull of all cells), `"convex"`, or `"bbox"`.
+Tumor polygons are always removed from the window.</p></dd>
+
+
+<dt id="arg-bw">bw<a class="anchor" aria-label="anchor" href="#arg-bw"></a></dt>
+<dd><p>Kernel bandwidth (microns) passed to `pcfcross`. Use the same value
+as in [plot_pcf_outside_pair_envelopes()] so heatmap values match the
+envelope curves. `NULL` uses the `spatstat` default.</p></dd>
 
 </dl></div>
     <div class="section level2">
