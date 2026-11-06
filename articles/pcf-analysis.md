@@ -7,6 +7,60 @@ Correlation Function (PCF) analysis. These functions specifically
 analyze spatial co-occurrence of cell types **outside** tumor polygons,
 characterizing the peritumoral microenvironment architecture.
 
+### How the PCF works
+
+The pair correlation function g(r) asks: around cells of type A, are
+cells of type B found at distance *r* more often than expected by
+chance? For each type-A cell, stGradient counts type-B cells in a thin
+ring of radius *r* and compares that count with what you would expect if
+type-B cells were spread evenly over the observation window. g(r) \> 1
+means the two types co-localize at that distance, g(r) ≈ 1 means no
+association, and g(r) \< 1 means they avoid each other. Note that *r* is
+the distance **between two cells**, not the distance from the tumor.
+
+The package offers two ways to run this analysis, shown in the figure
+below:
+
+- **Whole-region PCF (panels a–d).** One g(r) per cell-type pair is
+  computed over the entire outside-tumor region. The observation window
+  is the tissue outline with the tumor polygons cut out (a), and cells
+  inside the tumor are excluded. Significance comes from simulation
+  envelopes under one of two null models: complete spatial randomness,
+  which scatters cells uniformly across the window (b), or band
+  permutation, which keeps cell positions and shuffles cell-type labels
+  within bands that follow the tumor contour, so that a shared gradient
+  away from the tumor is not mistaken for co-localization (c). The
+  result is a g(r) curve with its envelope; the value at your chosen
+  `distance` feeds the summary heatmap (d).
+- **Per-band PCF (panels e–l).**
+  [`calculate_pcf_by_band()`](../reference/calculate_pcf_by_band.md)
+  splits the outside region into bands at increasing distance from the
+  tumor boundary that follow its irregular outline (e) and computes g
+  separately in each band, showing whether co-localization changes with
+  distance from the tumor. Two approaches are available.
+  **Restricted** (f) treats each band as its own window and uses only
+  cells inside it; because bands are thin, keep *r* at or below the band
+  width. **Anchored** (g) takes the anchor cell type from the band but
+  counts neighbors anywhere outside the tumor, which allows larger *r*
+  and gives directional results (A→B differs from B→A). Results are
+  returned as one heatmap per band and as a profile of g across bands
+  (h). Each approach can be tested against a label-shuffle null, which
+  keeps positions and permutes cell types (i, k), or a CSR null, which
+  relocates cells uniformly (j, l).
+
+![](pcf_analysis_options.png)
+
+*Overview of the PCF options (schematic with simulated cells). **a–d**,
+Whole-region PCF: the observation window (tissue minus tumor), the two
+null models (`"csr"` and `"band_permutation"`), and the g(r) curve with
+its envelope. **e–h**, Per-band PCF with
+[`calculate_pcf_by_band()`](../reference/calculate_pcf_by_band.md):
+bands follow the tumor contour; the `"restricted"` approach uses only
+cells in the band, the `"anchored"` approach takes anchor cells from the
+band and neighbors from anywhere outside the tumor; outputs are per-band
+heatmaps and a profile across bands. **i–l**, The per-band null models
+(`"label_shuffle"` and `"csr"`) for each approach.*
+
 ## Prerequisites
 
 PCF analysis requires the `spatstat.geom` and `spatstat.explore`
