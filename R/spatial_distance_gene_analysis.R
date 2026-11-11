@@ -92,7 +92,15 @@ warn_too_few_genes <- function(n_expressing, min_cells_expressing, n_cells, assa
 #'   smaller of the two cutoffs is used. Set to `NULL` to rely on the quantile
 #'   alone.
 #' @param p_adj_threshold BH adjusted p-value threshold for significant genes.
-#' @return List containing model results, binned expression, and metadata.
+#' @param celltype Cell type(s) to analyze. `NULL` (default) uses all cells. A
+#'   character vector restricts the analysis to cells whose `celltype_col` value
+#'   is in `celltype` (pooled into a single model). `"each"` runs the analysis
+#'   separately for every cell type in `celltype_col`.
+#' @param celltype_col Metadata column holding cell type labels. Required when
+#'   `celltype` is not `NULL`.
+#' @return List containing model results, binned expression, and metadata. When
+#'   `celltype = "each"`, a named list of such results, one per cell type; cell
+#'   types with too few cells or genes to test are dropped with a warning.
 #' @export
 find_distance_associated_genes <- function(seurat_obj,
                                            assay = "Xenium",
@@ -101,8 +109,62 @@ find_distance_associated_genes <- function(seurat_obj,
                                            focus = c("peritumoral", "intratumoral", "both"),
                                            max_dist_quantile = 0.95,
                                            max_distance = 200,
-                                           p_adj_threshold = 0.05) {
+                                           p_adj_threshold = 0.05,
+                                           celltype = NULL,
+                                           celltype_col = NULL) {
   focus <- match.arg(focus)
+
+  if (!is.null(celltype)) {
+    if (!is.character(celltype) || length(celltype) == 0 || anyNA(celltype)) {
+      stop("`celltype` must be NULL, \"each\", or a character vector of cell types.",
+           call. = FALSE)
+    }
+    if (is.null(celltype_col)) {
+      stop("`celltype_col` must be provided when `celltype` is set.", call. = FALSE)
+    }
+    if (!celltype_col %in% colnames(seurat_obj@meta.data)) {
+      stop("Column '", celltype_col, "' not found in metadata.", call. = FALSE)
+    }
+    ct_values <- as.character(seurat_obj@meta.data[[celltype_col]])
+
+    if (identical(celltype, "each")) {
+      ct_levels <- sort(unique(ct_values[!is.na(ct_values)]))
+      res <- lapply(ct_levels, function(ct) {
+        withCallingHandlers(
+          find_distance_associated_genes(
+            seurat_obj,
+            assay = assay,
+            min_cells_expressing = min_cells_expressing,
+            n_distance_bins = n_distance_bins,
+            focus = focus,
+            max_dist_quantile = max_dist_quantile,
+            max_distance = max_distance,
+            p_adj_threshold = p_adj_threshold,
+            celltype = ct,
+            celltype_col = celltype_col
+          ),
+          warning = function(w) {
+            warning("[", ct, "] ", conditionMessage(w), call. = FALSE)
+            invokeRestart("muffleWarning")
+          }
+        )
+      })
+      names(res) <- ct_levels
+      return(Filter(Negate(is.null), res))
+    }
+
+    missing_ct <- setdiff(celltype, ct_values)
+    if (length(missing_ct) == length(celltype)) {
+      stop("None of the requested cell types found in '", celltype_col, "': ",
+           paste(missing_ct, collapse = ", "), call. = FALSE)
+    }
+    if (length(missing_ct) > 0) {
+      warning("Cell type(s) not found in '", celltype_col, "': ",
+              paste(missing_ct, collapse = ", "), call. = FALSE)
+    }
+    seurat_obj <- subset(seurat_obj,
+                         cells = colnames(seurat_obj)[ct_values %in% celltype])
+  }
 
   if (!is.null(max_distance) &&
       !(is.numeric(max_distance) && length(max_distance) == 1 &&
@@ -255,7 +317,8 @@ find_distance_associated_genes <- function(seurat_obj,
     dist_values = dist_values,
     focus = focus,
     n_distance_bins = n_distance_bins,
-    max_distance = max_distance
+    max_distance = max_distance,
+    celltype = celltype
   )
 }
 
@@ -275,6 +338,9 @@ plot_distance_genes <- function(result_list, top_n = 12, sample_label = "") {
   results <- result_list$results
   binned <- result_list$binned_expr
   focus <- result_list$focus
+  if (!is.null(result_list$celltype)) {
+    focus <- paste0(focus, ", ", paste(result_list$celltype, collapse = "/"))
+  }
 
   title_suffix <- ifelse(
     nchar(sample_label) > 0,

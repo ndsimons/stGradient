@@ -61,6 +61,23 @@ dist_res <- find_distance_associated_genes(
 | `"intratumoral"` | Only cells inside the tumor boundary (distance ≤ 0) |
 | `"both"` | All cells |
 
+#### Restricting to Cell Types
+
+Use `celltype` with `celltype_col` to analyze specific cell types. A vector of types is pooled into one analysis; `celltype = "each"` runs the analysis separately for every cell type and returns a named list of results:
+
+```{r find-genes-celltype, eval = FALSE}
+# Only fibroblasts
+fib_res <- find_distance_associated_genes(seurat_obj, celltype = "Fibroblast",
+                                          celltype_col = "cellType")
+
+# Each cell type separately
+ct_res <- find_distance_associated_genes(seurat_obj, celltype = "each",
+                                         celltype_col = "cellType")
+ct_plots <- lapply(names(ct_res), function(ct) plot_distance_genes(ct_res[[ct]]))
+```
+
+Cell types with too few cells or expressed genes are dropped from the `"each"` output with a warning.
+
 ### Step 3: Visualize Results
 
 ```{r plot-dist-genes}
