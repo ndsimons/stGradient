@@ -14,7 +14,9 @@ find_distance_associated_genes(
   focus = c("peritumoral", "intratumoral", "both"),
   max_dist_quantile = 0.95,
   max_distance = 200,
-  p_adj_threshold = 0.05
+  p_adj_threshold = 0.05,
+  celltype = NULL,
+  celltype_col = NULL
 )
 ```
 
@@ -58,6 +60,22 @@ find_distance_associated_genes(
 
   BH adjusted p-value threshold for significant genes.
 
+- celltype:
+
+  Cell type(s) to analyze. \`NULL\` (default) uses all cells. A
+  character vector restricts the analysis to cells whose
+  \`celltype_col\` value is in \`celltype\` (pooled into a single
+  model). \`"each"\` runs the analysis separately for every cell type in
+  \`celltype_col\`.
+
+- celltype_col:
+
+  Metadata column holding cell type labels. Required when \`celltype\`
+  is not \`NULL\`.
+
 ## Value
 
-List containing model results, binned expression, and metadata.
+List containing model results, binned expression, and metadata. When
+\`celltype = "each"\`, a named list of such results, one per cell type;
+cell types with too few cells or genes to test are dropped with a
+warning.

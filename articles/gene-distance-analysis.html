@@ -150,11 +150,30 @@ extends to <code>max_distance</code>.</p>
 </tbody>
 </table>
 </div>
+<div class="section level4">
+<h4 id="restricting-to-cell-types">Restricting to Cell Types<a class="anchor" aria-label="anchor" href="#restricting-to-cell-types"></a>
+</h4>
+<p>Use <code>celltype</code> with <code>celltype_col</code> to analyze
+specific cell types. A vector of types is pooled into one analysis;
+<code>celltype = "each"</code> runs the analysis separately for every
+cell type and returns a named list of results:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Only fibroblasts</span></span>
+<span><span class="va">fib_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/find_distance_associated_genes.html">find_distance_associated_genes</a></span><span class="op">(</span><span class="va">seurat_obj</span>, celltype <span class="op">=</span> <span class="st">"Fibroblast"</span>,</span>
+<span>                                          celltype_col <span class="op">=</span> <span class="st">"cellType"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Each cell type separately</span></span>
+<span><span class="va">ct_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/find_distance_associated_genes.html">find_distance_associated_genes</a></span><span class="op">(</span><span class="va">seurat_obj</span>, celltype <span class="op">=</span> <span class="st">"each"</span>,</span>
+<span>                                         celltype_col <span class="op">=</span> <span class="st">"cellType"</span><span class="op">)</span></span>
+<span><span class="va">ct_plots</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">ct_res</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">ct</span><span class="op">)</span> <span class="fu"><a href="../reference/plot_distance_genes.html">plot_distance_genes</a></span><span class="op">(</span><span class="va">ct_res</span><span class="op">[[</span><span class="va">ct</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Cell types with too few cells or expressed genes are dropped from the
+<code>"each"</code> output with a warning.</p>
+</div>
 </div>
 <div class="section level3">
 <h3 id="step-3-visualize-results">Step 3: Visualize Results<a class="anchor" aria-label="anchor" href="#step-3-visualize-results"></a>
 </h3>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dist_plots</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_distance_genes.html">plot_distance_genes</a></span><span class="op">(</span><span class="va">dist_res</span>, top_n <span class="op">=</span> <span class="fl">12</span>, sample_label <span class="op">=</span> <span class="st">"Sample_01"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Volcano plot of gene significance</span></span>

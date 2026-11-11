@@ -64,7 +64,9 @@ tumor boundary.</p>
 <span>  focus <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"peritumoral"</span>, <span class="st">"intratumoral"</span>, <span class="st">"both"</span><span class="op">)</span>,</span>
 <span>  max_dist_quantile <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  max_distance <span class="op">=</span> <span class="fl">200</span>,</span>
-<span>  p_adj_threshold <span class="op">=</span> <span class="fl">0.05</span></span>
+<span>  p_adj_threshold <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span>  celltype <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  celltype_col <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -108,10 +110,24 @@ alone.</p></dd>
 <dt id="arg-p-adj-threshold">p_adj_threshold<a class="anchor" aria-label="anchor" href="#arg-p-adj-threshold"></a></dt>
 <dd><p>BH adjusted p-value threshold for significant genes.</p></dd>
 
+
+<dt id="arg-celltype">celltype<a class="anchor" aria-label="anchor" href="#arg-celltype"></a></dt>
+<dd><p>Cell type(s) to analyze. `NULL` (default) uses all cells. A
+character vector restricts the analysis to cells whose `celltype_col` value
+is in `celltype` (pooled into a single model). `"each"` runs the analysis
+separately for every cell type in `celltype_col`.</p></dd>
+
+
+<dt id="arg-celltype-col">celltype_col<a class="anchor" aria-label="anchor" href="#arg-celltype-col"></a></dt>
+<dd><p>Metadata column holding cell type labels. Required when
+`celltype` is not `NULL`.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>List containing model results, binned expression, and metadata.</p>
+    <p>List containing model results, binned expression, and metadata. When
+  `celltype = "each"`, a named list of such results, one per cell type; cell
+  types with too few cells or genes to test are dropped with a warning.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
